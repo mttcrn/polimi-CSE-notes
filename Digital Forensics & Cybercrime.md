@@ -4,7 +4,7 @@ Risk is a statistical and economical evaluation of the exposure to damage becaus
 - Internal or external w.r.t. the organization.
 - Generic or targeted.
 - Financially motivated (largest group of attacks according to historical records) or not.
-### Gartner quadrant of threats <a href="#orged7e7de" id="orged7e7de"></a>
+### Gartner quadrant of threats 
 
 |          | Generic                      | Specific                                        |
 | -------- | ---------------------------- | ----------------------------------------------- |

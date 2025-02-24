@@ -1025,7 +1025,7 @@ A good generator $\mathcal{G}$ makes $\mathcal{D}$ to fail, thus is minimizes th
 GAN training:
 ![GAN_training](./assets/GAN_training.png)
 
-During early learning stages, when $\mathcal{G}$ is poor, $\mathcal{D}$ can reject samples with high confidence because they are clearly different from the training data (thus $\mathcal{D}(\mathcal{G}(z)) \sim 0$$). In this case, $\log(\mathcal{D}(\mathcal{G}(z)))$ is flat, thus has very flow gradient.
+During early learning stages, when $\mathcal{G}$ is poor, $\mathcal{D}$ can reject samples with high confidence because they are clearly different from the training data (thus $\mathcal{D}(\mathcal{G}(z)) \sim 0$). In this case, $\log(\mathcal{D}(\mathcal{G}(z)))$ is flat, thus has very flow gradient.
 Rather than training $\mathcal{G}$ to minimize $\log(1 -\mathcal{D}(\mathcal{G}(z)))$, we can maximize $\log(\mathcal{D}(\mathcal{G}(z)))$. This objective function results in the same fixed point of the dynamics of $\mathcal{G}$ and $\mathcal{D}$, but provide much stronger gradients early in learning.
 
 The training is rather unstable, we need to carefully synchronize the two steps, but it can be made with standard tools (back-propagation and dropout). Generator performance is difficult to assess quantitatively. There is no explicit expression for the generator, it is provided in an implicit form.
