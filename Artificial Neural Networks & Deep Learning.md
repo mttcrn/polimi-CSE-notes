@@ -751,7 +751,7 @@ PCA/whitening preprocessing are generally performed after having "zero-centered"
 
 Normalization statistics are parameters of the ML model: any preprocessing statistics must be computed on training data, and applied to the validation/test data. First split in training, validation and test and then normalize the data.
 When using pre-trained model it is better to use the given pre-processing function.
-#### Batch Normalization [[ANNDL#Batch Normalization|BN]]
+#### Batch Normalization [[Artificial Neural Networks & Deep Learning#Batch Normalization|BN]]
 Consider a batch of activations $\{x_i\}$, this transformation $$x_i ' = {{x_i - E[x_i]}\over{\sqrt{var[x_i]}}}$$ (where mean and variance are computed from each batch and separately for each channel) bring the activations to unit variance and zero mean.
 
 ![batch_normalization](batch_normalization.png)

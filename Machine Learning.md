@@ -219,7 +219,7 @@ By taking $L_W(w) = {1 \over 2}w^Tw = {1 \over 2}||w||_2^2$ we get:
 $$
 L(w) = {1 \over 2} \sum_{i=1}^N (t_i - w^T \phi(x_i))^2 + {\lambda \over 2} ||w||_2^2
 $$
-It is called ridge regression or [[ANNDL#Weight decay limiting overfitting by weights regularization|weight decay]].
+It is called ridge regression or [[Artificial Neural Networks & Deep Learning#Weight decay limiting overfitting by weights regularization|weight decay]].
 The loss function is still quadratic in $w$:
 $$
 \hat{w}_{ridge} = (\lambda I + \Phi^t\Phi)^{-1} \Phi^T t

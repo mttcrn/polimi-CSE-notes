@@ -1,8 +1,9 @@
 # AI topics
-* [Artificial Neural Networks and Deep Learning](ANNDL.md)
-- [Natural Language Processing](Natural%20Language%20Processing.md)
+- [[Artificial Neural Networks & Deep Learning]]
+- [[Natural Language Processing]]
+- [[Machine Learning]]
 # Cyber Security topics
-* [Computer Security cheatsheet](Computer%20Security%20cheatsheet.md)
-* [Digital Forensics & Cybercrime](Digital%20Forensics%20&%20Cybercrime.md)
+- [[Computer Security cheatsheet]]
+- [[Digital Forensics & Cybercrime]]
 # Others
-* [Computer Ethics](Computer%20Ethics.md)
+- [[Computer Ethics]]
