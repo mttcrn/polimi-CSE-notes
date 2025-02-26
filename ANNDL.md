@@ -389,7 +389,7 @@ This would not be the case if the network had hidden layer that would mix the ou
 Each image is interpreted as a point in $\mathbb{R}^d$. Each classifier is a weighted sum of pixels, which corresponds to a linear function in $\mathbb{R}^d$.
 In $\mathbb{R}^2$ these would be $f([x_1, x_2]) = w_1 x_1 + w_2 x_2 + b$. Then, points $[x_1, x_2]$ yielding $f([x_1, x_2]) = 0$ would be lines that separates positive from negative scores for each class. This region becomes an hyperplane in $\mathbb{R}^d$.
 
-![linear_classification](./assets/linear_classification.png)
+![linear_classification|450](./assets/linear_classification.png)
 
 The classification score is then computed as the correlation between each input image and the "template" of the corresponding class.
 ## Challenges of image recognition
@@ -446,7 +446,7 @@ They introduce non-linearity in the network, otherwise the CNN might be equivale
 ### Pooling layers
 They reduce the spatial size of the volume. They operate independently on every depth slice of the input and resizes it spatially, often using the MAX operation.
 
-![pooling](./assets/pooling.png)
+![pooling|450](./assets/pooling.png)
 
 Typically, the stride is assumed equal to the pooling size (where not specified maxpooling has a stride 2x2 and reduces the image size to 25%).
 It is also possible to use a different stride. It is possible to adopt stride = 1, which does not reduce the spatial size, but just perform pooling on each pixel (it makes sense with non linear pooling).
@@ -572,7 +572,7 @@ Each layer features a more powerful functional approximation than a conv layer.
 They also introduce global average pooling layers (GAP): instead of a FC layer at the end of the network, compute the average of each feature map.
 The GAP corresponds to a multiplication against a block diagonal, non-trainable, constant matrix (the input is flattened layer-wise in a vector).
 
-![GAP](./assets/GAP.png)
+![GAP|250](./assets/GAP.png)
 
 Since fully connected layers are prone to overfitting (many parameters) then the GAP was introduced to remove those layers.
 
@@ -628,7 +628,7 @@ Adding an identity shortcut connection:
 - In case the network layers till the connection were optimal, the weights to be learned goes to zero and information is propagated by the identity.
 - The network can still be trained through back-propagation. 
 
-![residual](./assets/residual.png)
+![residual|350](./assets/residual.png)
 
 It force the network to learn a different task in each block.
 - $\mathcal{F}(x)$ is the residual, which turns to be easier to train in deep networks.
@@ -751,7 +751,7 @@ PCA/whitening preprocessing are generally performed after having "zero-centered"
 
 Normalization statistics are parameters of the ML model: any preprocessing statistics must be computed on training data, and applied to the validation/test data. First split in training, validation and test and then normalize the data.
 When using pre-trained model it is better to use the given pre-processing function.
-#### Batch Normalization [[Artificial Neural Networks and Deep Learning#Batch Normalization|BN]]
+#### Batch Normalization [[ANNDL#Batch Normalization|BN]]
 Consider a batch of activations $\{x_i\}$, this transformation $$x_i ' = {{x_i - E[x_i]}\over{\sqrt{var[x_i]}}}$$ (where mean and variance are computed from each batch and separately for each channel) bring the activations to unit variance and zero mean.
 
 ![batch_normalization](batch_normalization.png)
@@ -791,7 +791,7 @@ The advantages of GAP layer extend beyond simply acting as a structural regulari
 Assuming that we have a CNN architecture trained, so at the end of the convolutional block we have $n$ feature maps $f_k (\cdot, \cdot)$ having resolution "similar" to the input image and a GAP layer that computes $n$ averages $F_k$.
 By adding a single FC layer after the GAP, we can compute $S_c$ for each class $c$ as the weighted sum of $\{F_k\}$, where weights are defined during training, and the class probability $P_c$.
 
-![FC_layer](./assets/FC_layer.png)
+![FC_layer|400](./assets/FC_layer.png)
 
 Thanks to the FC layer, the number of channels of the last conv layer can differ from the number of classes.
 
@@ -925,7 +925,7 @@ The goal is to naturally leverage the pyramidal shape of a ConvNet's feature hie
 It combines semantically strong features with semantically weak features.
 Predictions are independently made on each level.
 
-![pyramid](./assets/pyramid.png)
+![pyramid|450](./assets/pyramid.png)
 
 It uses top-down pathway and lateral connections.
 
