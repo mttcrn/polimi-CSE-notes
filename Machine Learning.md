@@ -84,17 +84,26 @@ $$
 where $\phi(x) = (1, \phi_1(x), .., \phi_{M-1}(x))^T$ are called features (e.g. polynomial, Gaussian, sigmoidal, ..). 
 In this way, we extend the class of models by considering linear combinations of fixed non-linear functions (basis functions) of the input variable.
 ### Approaches
-The generative approach consists in:
-1. Model the joint density: $p(x, t) = p(x|t)p(t)$.
-2. Infer the conditional density: $p(t|x) = {p(x, t) \over p(x)}$.
+A **direct** approach (which is not a statistical method) consists in finding a regression function $y(x)$ directly from the training data. 
+It is computationally efficient, but it has no probabilistic interpretation and lacks flexibility.
+
+The **generative** approach consists in:
+1. Model the joint probability distribution: $p(x, t) = p(x|t)p(t)$.
+2. Infer the conditional density (using Bayes theorem): $p(t|x) = {p(x, t) \over p(x)}$.
 3. Marginalize to find the conditional mean: $\mathbb{E}[t|x] = \int t p(t|x)dt$.
-It is useful for augmenting data since it can generate new samples. 
+It is useful for augmenting data since it can generate new samples, so it is robust to missing data. However, the assumptions about data distribution (point 1.) might be unrealistic. 
 
-In a discriminative approach we try to predict the target given the input. It consists in:
-1. Model the conditional density: $p(t|x)$.
+In a **discriminative** approach we try to predict the target given the input. It consists in:
+1. Model the conditional probability: $p(t|x)$.
 2. Marginalize to find the conditional mean: $\mathbb{E}[t|x] = \int tp(t|x)dt$.
+It finds decision boundaries that best classify $y$ given $X$, without modeling the distribution of $X$.
+Typically achieves better classification accuracy than generative models.
 
-A direct approach (which is not a statistical method) consists in finding a regression function $y(x)$ directly from the training data. 
+| Approach       | What it models                       |
+| -------------- | ------------------------------------ |
+| Direct         | direct parameter estimation          |
+| Generative     | joint probability distribution       |
+| Discriminative | conditional probability distribution |
 ## Minimizing Least Squares
 Given a dataset with $N$ samples, we consider the following error (loss) function
 $$
@@ -122,7 +131,8 @@ To clarify, $\Phi^T\Phi$ is singular when there are:
 - more samples than features, so it is not possibile to solve the problem as we have infinite solutions. 
 - redundant features, as some features are linear combinations of others.
 
-OLS is a closed-form solution, which is not practical with big data. 
+OLS is a closed-form solution, which is not practical with big data, but it is computationally efficient.
+It is a direct approach since it calculate $\hat{w}_{OLS}$ directly.
 ### Gradient Optimization
 It is an algorithm with sequential (online) updates.
 If the loss function can be expressed as a sum over samples $L(x) = \sum_n L(x_n)$, then we can write the following rules:
@@ -140,7 +150,7 @@ $$
 $$
 \sum_{k=0}^\infty a^{(k)^2} < + \infty
 $$
-Advantages: it is cheaper and since the problem is convex it will find the optimal solution.
+Advantages: it is cheaper and since the problem is convex it will find the optimal solution. 
 #### Geometric interpretation
 Let's assume that $t$ is an N-dimensional vector. 
 Let's denote:
@@ -152,8 +162,8 @@ So, we can say that:
 - since $\hat{t}$ minimizes SSE w.r.t. $t$, it represents the orthogonal projection of $t$ onto the subspace $\mathcal{S}$ $$
 \hat{t} = \Phi \hat{w} = H t
 $$where $H = \Phi (\Phi ^T \Phi)^{-1} \Phi ^T$ is called the hat matrix.
-![](./assets/hat_matrix.png)
-### Maximum Likelihood (ML)
+![600](./assets/hat_matrix.png)
+### Maximum Likelihood Estimation (MLE)
 It is a discriminative approach. 
 The output variable $t$ can be modeled as a deterministic function $y$ of the input $x$ and random noise $\epsilon$: $t = f(x) + \epsilon$.
 We want to approximate $f(x)$ with $y(x, w)$ assuming that $\epsilon \sim \mathcal{n}(0, \sigma^2)$ (white, Gaussian noise).
@@ -279,13 +289,76 @@ For sequential data, the posterior acts as prior for the next iteration.
 
 In Gaussian distributions the mode coincides with the mean. It follows that $w_N$ is the MAP estimator. Moreover:
 - If the prior has infinite variance, $w_N$ reduces to the ML estimator. 
-- If $w_0 = 0$ and $S_0 = \tau^2I$, then $w_N$ reduces to the ridge estimate, where $\lambda = \sigma^2 / \tau^2$.
+- If $w_0 = 0$ and $S_0 = \tau^2I$, then $w_N$ reduces to the [[Machine Learning#Ridge|ridge estimate]], where $\lambda = \sigma^2 / \tau^2$.
 
+We are interested in the posterior predictive distribution:
+$$
+	p(t|x, \mathcal{D}, \sigma^2) = \int \mathcal{N}(t|w^T \phi(x), \sigma^2)\mathcal{N}(w | w_N, S_N) dw = \mathcal{N}(t|w_N^T\phi(x), \sigma^2_N(x))
+$$
+where:
+$$
+\sigma^2 = \underbrace{\sigma^2}_{\text{noise in the} \atop \text{ target values}} + \underbrace{\phi(x)^T S_N\phi(x)}_{\text{uncertainty associated} \atop \text{with parameter values}}
+$$
+- In the limit, as $N \rightarrow \infty$, the second term goes to zero.
+- The variance of the predictive distribution arises only from the additive noise governed by parameter $\sigma$.
+#### Modeling challenges
+The first challenge is in specifying:
+- a suitable **model**, which should admit all possibilities that thought to be all likely.
+- a suitable **prior distribution**, which should avoid giving zero or very small probabilities to possible events, but should also avoid spreading out the probability over all possibilities.
+To avoid uninformative priors, we may need to model dependencies between parameters. One strategy is to introduce latent variables into the model and hyperparameters into the prior. 
+Both of these represents the ways of modeling dependencies in a tractable way. 
+#### Computational challenges
+The other big challenge is computing the posterior distribution. There are several approaches:
+- **Analytical integration**: if we use conjugate priors, the posterior distribution can be computed analytically. It only works for simple models. 
+- **Gaussian (Laplace) approximation**: approximate the posterior distribution with a Gaussian. It works well when there are lot of data compared to the model complexity.
+- **Monte Carlo integration**: once we have a sample from the posterior distribution, we can simulate a Markov chain that converges to the posterior distribution (Markov Chain Monte Carlo, MCMC).
+- **Variational approximation**: usually faster than MCMC, but it is less general.
 
+In summary:
+- Advantages:
+	- Closed-form solution.
+	- Tractable Bayesian treatment.
+	- Arbitrary non-linearity with the proper basis functions.
+- Disadvantages:
+	- Basis functions are chosen independently from the training set. 
+	- Curse of dimensionality. 
 
+| Method                              | Category            |
+| ----------------------------------- | ------------------- |
+| Ordinary Least Squares (OLS)        | Direct approach     |
+| Gradient-based optimization         | Direct approach     |
+| Maximum Likelihood Estimation (MLE) | Generative approach |
+| Bayesian Linear Regression          | Generative approach |
+# Linear Classification
+## Classification Problems
+The goal of classification is to assign an input $x$ into of of $K$ discrete classes $C_k$, where $k = 1, .., K$. 
 
+In linear classification, the input space is divided into decision regions whose boundaries are called **decision boundaries** or decision surfaces. 
+In classification, we need to predict discrete class labels, or posterior probabilities that lie in the range of $(0, 1)$, so we use a nonlinear function. 
+$$
+y(x, w) = f(x^Tw + w_0)
+$$
+It is a **generalized linear model**, which is not linear in the parameters but it will give us decision boundaries linear in $x$ which corresponds to $y(x, w) = \text{constant}$.
+They have more complex analytical and computational properties than regression. As in regression, we can consider fixed nonlinear basis functions. 
 
+- In two class problems, we have a binary target value $t \in \{0, 1\}$, such that $t=1$ is the positive class and $t=0$ is the negative class. 
+  We can interpret the value of t as the probability of the positive class. 
+  The output of the model can be represented as the probability that the model assigns to the positive class. 
+- If there are $K$ classes, we can use a 1-of-$K$ encoding scheme.
+  $t$ is a vector of length $K$ and contains a single 1 for the correct class and 0 elsewhere. $t$ is the vector of class probabilities. 
 
+We can use three approaches to classification:
+- Discriminant functions: build a function that directly maps each input to a specific class. The idea is to take a plane and move it another 
+- Probabilistic approach: model the conditional probability distribution $p(C_k|x)$ and use it to make optimal decisions. There are two alternatives:
+	- Probabilistic discriminative approach: model $p(C_k|x)$ directly using parametric models.
+	- Probabilistic generative approach: model class conditional densities $p(x|C_k)$ together with prior probabilities $p(C_k)$ for the classes, then infer the posterior $p(x|C_k)$ using Bayes' rule. 
+
+### Two classes
+Given $y(x) = x^Tw + w_0$, the decision boundaries can be found with $y(x) = 0$. We assign $x$ to $C_1$ if $y(x) \ge 0$, to $C_2$ otherwise. 
+## Discriminant Functions
+### Least Squares
+### The Perceptron Algorithm
+## Probabilistic Discriminative Models
 
 
 
