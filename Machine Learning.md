@@ -270,7 +270,7 @@ where:
 
 In words: $posterior \propto likelihood \times prior$.
 We are searching for the most probable value of $w$ given the data: maximum a posteriori (MAP) which is the mode of the posterior.
-### BLR
+### Bayesian Linear Regression (BLR)
 Another approach to avoid overfitting is to use a Bayesian Linear Regression (BLR).
 In the Bayesian approach the parameters of the model are considered as drawn from some distribution. 
 
@@ -330,7 +330,7 @@ In summary:
 | Maximum Likelihood Estimation (MLE) | Generative approach |
 | Bayesian Linear Regression          | Generative approach |
 # Linear Classification
-## Classification Problems
+## Classification Problem
 The goal of classification is to assign an input $x$ into of of $K$ discrete classes $C_k$, where $k = 1, .., K$. 
 
 In linear classification, the input space is divided into decision regions whose boundaries are called **decision boundaries** or decision surfaces. 
@@ -352,27 +352,164 @@ We can use three approaches to classification:
 - Probabilistic approach: model the conditional probability distribution $p(C_k|x)$ and use it to make optimal decisions. There are two alternatives:
 	- Probabilistic discriminative approach: model $p(C_k|x)$ directly using parametric models.
 	- Probabilistic generative approach: model class conditional densities $p(x|C_k)$ together with prior probabilities $p(C_k)$ for the classes, then infer the posterior $p(x|C_k)$ using Bayes' rule. 
-
+## Discriminant Functions
 ### Two classes
 Given $y(x) = x^Tw + w_0$, the decision boundaries can be found with $y(x) = 0$. We assign $x$ to $C_1$ if $y(x) \ge 0$, to $C_2$ otherwise. 
-## Discriminant Functions
-### Least Squares
-### The Perceptron Algorithm
+Moreover, given two points on the decision surface $x_A, x_B$ we can say that $y(x_A) = y(x_B) = 0$ and $w^T(x_A - x_B) = 0$: since the scalar product is null (perpendicular vectors) it means that $w$ is orthogonal to the decision surface. 
+If $x$ is on the decision surface, then $w^Tx / ||w||_2 = - w_0 / ||w||_2$ which means that $w_0$ determines the location of the decision surface (translation w.r.t. the origin).  
+![500](./assets/2class_classification.png)
+### Multiple classes
+Consider the extension to $K>2$ classes. We can adapt the previous solution in two ways:
+- One-versus-the-rest: $K-1$ classifiers, each of which solves a two class problem. The idea is to separate points in class $C_k$ from points not in that class. However, there are regions in input space that are ambiguously classified. ![300](./assets/one-versus-the-rest.png)
+- One-versus-one: $K(K-1)/2$ binary discriminant functions. However, ambiguity arises. ![300](./assets/one-versus-one.png)
+A simple solution is to use $K$ linear discriminant functions of the form: 
+$$
+y_k(x) = x^Tw_k + w_{k0}
+$$
+where $k = 1, ..., K$.
+The idea is to assign $x$ to class $C_k$, if $y_k(x)>y_j(x)$ $\forall j \neq i$. 
+The result decision boundaries are **singly connected** and **convex** (any straight line between two points inside the region lie inside that region). In fact, for any two points $x_A, x_B$ that lie inside the region $\mathcal{R}_k$, so $y_k(x_A) > y_j(x_B)$ and $y_k(x_B) > y_j(x_B)$, taken any positive $\alpha$ we can say
+$$
+y_k(\alpha x_A + (1 - \alpha)x_B) > y_j(\alpha x_A + (1 - \alpha)x_B)
+$$
+due to linearity of the discriminant functions. 
+![300](./assets/multiclass_classification.png)
+### Least Squares for Classification
+Least squares approximates the conditional expectation $\mathbb{E}[t|x]$.
+Consider a general classification problem with $K$ classes using 1-of-$K$ encoding scheme for the target vector $t$. Each class is described by its own linear model:
+$$
+y_k(x) = w_k^Tx + w_{k0}
+$$
+where $k = 1, .., K$. 
+Using vector notation $y(x) = \tilde{W}^T\tilde{x}$ where:
+- $\tilde{W}$ is a $D \times K$ matrix whose $k_{th}$ column is $\tilde{w}_k = (w_{k0}, w_{k}^T)^T$.
+- $\tilde{x} = (1, x^T)^T$.
+
+Given a dataset $\mathcal{D} = \{x_i, t_i\}$, $i = 1, .., N$. 
+We have already seen how to minimize [[Machine Learning#Minimizing Least Squares|least squares]] $\tilde{W} = (\tilde{X}^T\tilde{X})^{-1}\tilde{X}^T T$ where:
+- $\tilde{X}$ is an $N \times D$ matrix whose $i_{th}$ row is $\tilde{x}_i^T$.
+- T is an $N \times D$ matrix whose $i_{th}$ row is $t_i^T$.
+A new input is assigned to a class for which $t_k = \tilde{x}^T\tilde{w}_k$ is the largest. 
+
+However, some problems arises in using least squares:
+- it is highly sensitive to outliers, unlike logistic regression. 
+- it does not works well with non-Gaussian distribution since LS is derived as the [[#Maximum Likelihood Estimation (MLE)|MLE]] under the assumption of Gaussian noise. LS regression assumes that the errors are normally (Gaussian) distributed around the predicted values. This assumption is valid for continuous targets but not for binary targets. This is the reason why LS fails in classification. 
+
+So far, we have considered classification models that work directly in the input space. 
+All considered algorithms are equally applicable if we first make a fixed non-linear transformation of the input space using vector of basis functions $\phi(x)$.
+Decision boundaries will appear linear in the feature space, but would correspond to nonlinear boundaries in the original input space. 
+Classes that are linearly separable in the feature space may not be linearly separable in the original input space. 
+![](./assets/nonlinear_boundaries.png)
+### [[Artificial Neural Networks & Deep Learning#Perceptron Learning Algorithm|The Perceptron Algorithm]]
+The [[Artificial Neural Networks & Deep Learning#The perceptron|perceptron]] is an example of linear discriminant model. It is an online linear classification algorithm. 
+It corresponds to a two-class model:
+$$
+y(x) = f(w^T\phi(x))
+$$
+$$
+f(a) = 
+\begin{cases}
+	+1 \ \ \ \text{if} \ a \ge 0\\
+	-1 \ \ \ \text{otherwise}
+\end{cases}
+$$
+
+The algorithm finds the separating hyperplane by minimizing the distance of misclassified points to the decision boundary.
+Using the number of misclassified point as loss function is not effective since it is a piece wise constant function (we cannot optimize it using gradient). 
+
+We are seeking a vector $w$ such that $w^T \phi(x_n) > 0$ when $x_n \in \mathcal{C}_1$ and $w^T \phi(x_n) < 0$ otherwise.
+The perceptron criterion assigns zero error to correct classification and $w^T \phi(x_n)t_n$ (non zero error) to misclassified patterns $x_n$: in this way the error is proportional to the distance to the decision boundary. 
+The loss function to be minimized is:
+$$
+L_P(w) = - \sum_{n \in \mathcal{M}} w^T \phi(x_n)t_n
+$$
+Note that $w^T \phi(x_n)t_n$ is always negative, since it is a missclassification, so we adjust the sign by putting a minus before the summary. 
+Minimization of such loss if performed using stochastic gradient descent:
+$$
+w^{(k+1)} = w^{(k)} - \alpha \nabla L_P(w) = w^{(k)} + \alpha \phi(x_n)t_n
+$$
+Since the perceptron function does not change if $w$ is multiplied by a positive constant, the **learning rate** $\alpha$ can be set to 1. 
+
+![500](./assets/perceptron_training_without_bias.gif)
+
+The effect of a single update is to reduce the error due to misclassified pattern. However, this does not imply that the loss is reduced at each stage.  
+
+> [!THEOREM] Perceptron Convergence Theorem
+> If the training data set is linearly separable in the feature space $\Phi$, then the perceptron learning algorithm is guaranteed to find and exact solution in a finite number of steps. 
+
+- The number of steps before convergence may be substantial. There is no bound on this number, so it has no practical use. 
+- We are not able to distinguish between non separable problems and slowly converging ones. 
+- If multiple solutions exists, the one found depends by the initialization of the parameters and the order of presentation of the data points. 
 ## Probabilistic Discriminative Models
+### Logistic Regression
+#### Binary problem
+Consider a two-class classification problem. The posterior probability of class $\mathcal{C}_1$ can be written as a logistic sigmoid function:
+$$
+p(\mathcal{C_1}|\phi) = { 1 \over 1 + \exp(-w^T\phi)} = \sigma(w^T\phi)
+$$
+where $p(\mathcal{C}_2|\phi) = 1 - p(\mathcal{C}_1 | \phi)$.
+The bias term is omitted for clarity.
+This model is known as logistic regression. Differently from generative models, here we model $p(\mathcal{C}_k | \phi)$ directly. 
+##### Maximum Likelihood for Logistic Regression
+Given a dataset $\mathcal{D} = \{x_n, t_n\}$ with $n = 1, .., N$ and $t_n \in \{0, 1\}$.
+We want to maximize the probability of getting the right label:
+$$
+p(t|X, w) = \prod_{n=1}^N y_n^{t_n}(1 - y_n)^{1-t_n}
+$$
+where $y_n = \sigma (w^T \phi_n)$ is the logistic prediction. 
+By taking the negative log of the likelihood, we can define cross-entropy error function to be minimized:
+$$
+L(w) = -\ln p(t|X, w) = - \sum_{n=1}^N (t_n \ln y_n + (1-t_n)\ln(1-y_n)) = \sum_{n=1}^N L_n
+$$
+Then we differentiate and apply the chain rule:
+$$
+{\partial L_n \over \partial y_n} = { y_n - t_n \over y_n(1-y_n)}
+$$
+$$
+{\partial y_n \over \partial w} = y_n(1-y_n)\phi_n
+$$
+$$
+{\partial L_n \over \partial w} = {\partial L_n \over \partial y_n} {\partial y_n \over \partial w} = \underbrace{(y_n - t_n)}_\text{error}\overbrace{\phi_n}^{\text{feature}} 
+$$
+The gradient of the loss function is:
+$$
+\nabla L(w) = \sum_{n=1}^N (y_n - t_n)\phi_n
+$$
+- It has the same form as the gradient of the SSE function for linear regression. 
+- There is NO closed form solution, due to non linearity of the logistic sigmoid function. 
+- The error function is convex and can be optimized by standard gradient optimization techniques. 
+- Easy to adapt to the online learning setting. 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+> [!NOTE] Relation between cross-entropy and negative log likelihood
+> The general concept of **NLL loss** applies to **any probabilistic model** where we maximize the likelihood of observed data. It is defined as: $L_{NLL​}=−\sum_i ​\log P(y_i​∣x_i​)$.
+> 
+> Cross-entropy loss is **a specific case** of NLL when dealing with **categorical distributions** (e.g., classification problems with softmax outputs).
+> For a classification problem with a categorical target $y$ and model predictions $\hat{y}$, it is defined as: $L_{CE} =-\sum_i y_i \log⁡ \hat{y_i}$.
+> 
+> In classification problems, the NLL and CE coincides. This is because classification problems typically model the probability of each class using a categorical distribution (for multiclass classification) or a Bernoulli distribution (for binary classification).
+#### Multi class problem
+For the multiclass case, we represent posterior probabilities by a softmax transformation of linear functions of feature variables:
+$$
+p(\mathcal{C}_k|\phi) = y_k(\phi) = {\exp(w_k^T\phi) \over \sum_j \exp(w_j^T\phi)}
+$$
+Differently from generative models, here we will use maximum likelihood to determine parameters of this discriminative model directly:
+$$
+p(T|\phi, w_1, .., w_K) = \prod^N_{n=1} (\underbrace{\prod^K_{k=1} p(\mathcal{C}_k |\phi_n)^{t_{nk}})}_{\text{Only one term} \atop \text{corresponding to correct class}} = \prod^N_{n=1} (\prod^K_{k=1} y_{nk}^{t_{nk}})
+$$
+where $y_{nk} = p(\mathcal{C}_k | \phi_n) = {\exp(w_k^T\phi_n) \over \sum_j \exp (w_j^T\phi_n)}$.
+Taking the negative logarithm gives the cross-entropy function for multiclass classification problem:
+$$
+L(w_1, .., w_K) = -\ln p(T|\phi, w_1, .., w_K) = - \sum_{n=1}^N (\sum_{k=1}^K t_{nk} \ln y_{nk})
+$$
+Taking the gradient:
+$$
+\nabla L_{w_j} (w_1, ..., w_K) = \sum_{n=1}^N (y_{nj} - t_{nj})\phi_n
+$$
+The gradient is computed for each set of weight for each class. 
+#### Connection between Logistic Regression and Perceptron Algorithm
+If we replace the logistic function with a step function, both algorithms use the same update rule: $w \leftarrow w - \alpha(y(x_n, w) - t_n)\phi_n$.
+![](./assets/logistic_regression_step_function.png)
+# Model Selection
 
 
 

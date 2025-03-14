@@ -154,3 +154,109 @@ Still they present an interesting overview of all the necessary/possible steps t
 - **Ignore the risk**: If you want to pretend the threat doesn’t exist, then you can ignore it, but this decision often means you open yourself up to legal liability or compliance violations.
 
 The attacker has room in the gap between what a system is designed to do, and what it does to achieve its goal. Our perfect goal would be to design a system that does what it is designed for. 
+# Social Engineering
+Technology vulnerabilities are hardened, patched or solved. 
+Social engineering is often the path of least resistance. Moreover, technologies hardly prevent SE. Hence, it is usually simpler, faster and cheaper. 
+
+The vast majority of attacks requires at least one step of SE. 
+- Only about 3% of malware tries to exploit an exclusively technical flaw, while other 97% involves targeting users through SE. 
+- For more than 90% of the successful attacks human are the “kill switch”. This means that without the human error the attack won’t start.
+- The number of successful attacks has risen from 62% in 2014, to 71% in 2015, to 76% in 2016, and to 79% in 2017 with no end in sight. 91% of these attacks use spear phishing.
+
+![500](./assets/cybersec_statistics.png)
+
+- “Any act that **influences** a person to take an action that may or may not be in their best interest”
+  Christopher Hadnagy
+- "Social engineering uses influence and persuasion to deceive people by convincing them that the social engineer is someone he is not, or by manipulation. As a result, the social engineer is able to take advantage of people to obtain information **with or without the use of technology**”
+  Kevin D. Mitnick & William L. Simon - Art of Deception
+- “Social engineering refers to all techniques aimed at talking a target into revealing specific **information or performing a specific action** for illegitimate reasons.” 
+  ENISA (European Union Agency for Cybersecurity)
+
+SE is the medium, not the objective. 
+More specifically, it is a category of attacks, of techniques to obtain specific goals. Each can be considered an attack vector, available every time there is some kind of human interaction in the attacked system. These can be used both by themselves, both as a step of a bigger attack, which may or may not include the use of other techniques. 
+## SE in STRIDE
+- Spoofing: often the attacker present itself as someone else to justify its actions.
+- Tampering: the attack may include crafting a message on behalf of someone.
+- Repudiation: less common as a direct goal.
+- Information Disclosure: the goal may be that of requesting sensible information.
+- Denial of Service: less common as a direct goal.
+- Elevation of Privilege: super common, especially confused deputy attacks.
+## Structuring SE
+The first use of the term is found in book titled “An Efficient Remedy for the Distress of
+Nations” (Gray, 1842).
+Up to the 1970s, it was used as a term to refer to policy planners that would need to understand the behavior of the masses in internal and external affairs.
+The meaning of the term was that of being an “**engineer**” **of social contexts** and of people, that understands the behavior of the system given an input, and can predict an output.
+
+In the digital age, phone phreakers are the ones that first modifies the term towards its current meaning which is "any act that manipulates a person to take an action that may or may not be in their best interest".
+
+These two definitions are less different than they look as the core characteristic are the same:
+1. Knowledge advantage (**epistemic asymmetry**).
+   The policy maker has knowledge of the historical reaction of masses towards events. The attacker has information on the victim and knowledge of expected behavior, but not the opposite.
+2. Technical strength to enact changes in others's behavior (**technocratic dominance**).
+   The policy maker can enforce public health, surveillance, and many more. The attacker can fake a website login, spoof the caller ID or disguise themselves. 
+3. Swerve the purpose of the target towards that of the social engineer (**technological replacement**).
+   The policy maker convinces the masses to spend more (through 1. and 2.). The attacker convinces the victim to download and execute malware (through 1. and 2.).
+
+The advantage in knowledge and technical skills allows to swerve the target’s goal.
+The attacker understands human behavior (knowledge) and has technical skills to trigger the wanted human behavior (technical advantage).
+Wrong assumptions lead the victim to build an incorrect model of the environment. 
+## SE attacks vectors
+![](./assets/social_engineering.png)
+### Phishing
+SE approach trough text (e.g. mails, text messages, comments on social media platforms, ..). It is vastly the most common vector. 
+Objectives vary: financial fraud, information theft, coercion/blackmail/extortion, malware delivery. 
+Implementation means are email, instant messaging services, social media chats.
+Common attacks are spear phishing, which target always the same category of people (whaling is for important people) or angler phishing, which the interaction starts from the victim in order to increase the trust. 
+Assumptions to play on (spoofing options) are logos, message structure copying, email send field or actual sender spoofing, impersonating on social media or using stolen accounts. 
+### Vishing 
+SE approach trough voice (e.g. calls).
+Most common attack goals are to obtain information of force-install something. 
+Assumptions to play on (spoofing options) are spoofing caller-ID trough VoIP, spoofing caller's name or instant messaging call options.
+Some countermeasures are technologically (may be implemented by the phone provider) and education/awareness (e.g. teach to call back instead).
+### Impersonation
+SE approach trough physical approach so it require physical presence.
+Most common goal is to access premises. 
+Common attacks are shoulder surfing and piggybacking/tailgating.
+Assumptions to play on (spoofing options) are wearing ad-hoc clothes, playing on the access level you already obtained or copying access credential. 
+Some countermeasures are perimeter security and/or personnel education. 
+
+- Risks: impersonation requires physical presence, so it only one attack can be conducted at a time (not parallelizable).
+- Reach: impersonation allows physical access.
+- Scale: phishing can parallelize attacks, this is why it is the most effective.
+- Effectiveness/Complexity: impersonation allows more control on the interaction than phishing, but also require more expertise. 
+- Technical support: spoofing email addresses may support the attack. 
+## Building Blocks
+The final goal of the attacker derives from the definition (convince the victim to execute a specific action). 
+To obtain the action, you need to **influence** the victim -> influence tactics.
+To influence the victim, you need to have its **trust** -> pretexting.
+To have its trust, you need **knowledge** -> information gathering. 
+### Knowledge: information gathering
+If an attack targets a specific entity, the focus is on gathering information relevant to that entity. 
+If no specific entity is targeted, the search may focus on entities with exploitable characteristics. 
+Examples of relevant information:
+
+| For corporations                       | For individuals                                   |
+| -------------------------------------- | ------------------------------------------------- |
+| name, branding, business focus         | contact details, family and friends               |
+| physical addresses, facility details   | personal interests, hobbies, sports               |
+| organizational structure and names     | employment details (new/old) and financial status |
+| policies and procedures                | social media presence                             |
+| social media end event (coming/passed) | schedule, routines, geolocations                  |
+| supply chain partners, relationships   |                                                   |
+For example, if targeting a specific company, an attacker might gather information about its employees. If there is no specific target and the goal is to exploit elderly individuals for financial gain, an attacker may look for the names of grandparent-children pairs and target whoever is identified.
+
+Such information can be accesses by:
+- Physical reconnaissance: layout of the facility, identification of people, access policies.
+- Digital scraping: general information gathering (google dorks, whois, recon-ng), people lookup (heHarvester, Pipl, social-media engines, LinkedIn sales tools) or others (Shodan, Have I been pwned, deHashed).
+- "Online" technical [OSINT](https://www.ibm.com/think/topics/osint): social media (80% of data used in SE attacks), company websites, collaboration websites, public reports, and many more.
+- Previous attacks or illicit activities.
+- Dumpster diving, theft, break & enter, data leaks.
+### Building Rapport: pretexting
+Pretexting means creating a scenario that helps you justify your actions and requests. 
+Since one of the most important aspects of a social engineering attack is to build trust, which does not mean that the victim has to like the attacker, but has to trust that the attacker is telling the truth.
+A solid pretext is an essential part of building trust. It is a combination of character and context. 
+
+1. Thinking through your goals: the pretext needs to justify the requests.
+2. Know how far to go: ensure to answer who are you, what do you want, are you a threat, how long will this take.
+3. Getting support for pretexting: look the part, bring your tools, know your stuff.
+4. Executing the pretext: practice, stretch, communicate, learn how to build a rapport, given the medium that you will use. 
