@@ -17,17 +17,15 @@ DL, while a crucial part of AI, is distinct from both traditional AI and ML. The
 The development of ANN began with the **perceptron**, introduced by Frank Rosenblatt in 1957. The perceptron was inspired by how biological neurons process information, receiving inputs, applying weights, and check if a certain threshold is crossed. Weights were encoded in potentiometers, and weight updates during learning were performed by electric motors.
 
 The basic structure of a perceptron can be seen as:
-
 $$
 y = \begin{cases} 
 1 \ \ \ \ \ \ \ \  if \ \sum^n_{i = 1}{ w_ix_i + b }> 0\\
 -1 \ \ \ \ otherwise
 \end{cases}
 $$
-
 where $x_1, ..., x_n$ are the input features, $w_1, ..., w_n$ are the weights assigned to each input features, $b$ is the bias term, and $y$ is the output of the perceptron. It calculates the dot product of the weights and inputs, adds the bias term and then applies the activation function (which in this case is a step function). If the result is greater than zero the output is 1, if it is less or equal zero the output is -1.
 
-![perceptron](./assets/perceptron.png)
+![500](./assets/perceptron.png)
 
 According to the **Hebbian learning theory**: "the strength of a synapse increases according to the simultaneous activation of the relative input and the desired target". 
 It states that if two neurons are active simultaneously, their connection is strengthened. The weight of the connection between A and B neurons is calculated using:
@@ -99,13 +97,9 @@ w^{k+1} = w^k - \eta {\partial E(w) \over \partial w}\bigg|_{w^k} - \alpha {\par
 $$
 
 Since using all the data points (batch) might be unpractical, so we use variations of the GD:
-
-![GD_var](./assets/GD_var.png)
-
-In batch GD we use one batch and one epoch. 
-In SDG we need as many steps (iterations) as the number of data points since we fix one data point at a time. SDG has higher variance during loss minimization than batch GD. 
-In mini-batch GD we need as many steps (iterations) as the number of data divided by the batch size.
-
+- Batch gradient descent: use one batch and one epoch. $${\partial E(w) \over \partial w} = {1 \over N} \sum^N_n {\partial E(x_n, w) \over \partial w}$$
+- Stochastic gradient descent: use a single sample, unbiased, but with high variance. We need as many steps (iterations) as the number of data points since we fix one data point at a time. SDG has higher variance during loss minimization than batch GD. $${\partial E(w) \over \partial w} \approx {\partial E_{SDG}(w) \over \partial w} ={\partial E(x_n, w) \over \partial w}$$
+- Mini-batch gradient descent: use a subset of samples, good trade off variance-computation. We need as many steps (iterations) as the number of data divided by the batch size. $${\partial E(w) \over \partial w} \approx {\partial E_{MB}(w) \over \partial w} = {1 \over M} \sum^{M<N}_{n\in\text{mini-batch}}{\partial E(x_n, w) \over \partial w}$$
 Weights update can be done in parallel, locally, and it requires only two passes. We apply the chain rule (derivative of composition of functions) to the back propagation formula.
 ### Maximum Likelihood Estimation
 Let's observes samples $x_1, ..., x_N$ from a Gaussian distribution with known variance $\sigma ^2$. We want to find the Maximum Likelihood Estimator for $\mu$.
@@ -134,9 +128,11 @@ argmin_w \sum_n^N (t_n - g(x_n | w))^2
 $$
 We have to minimize the **sum of squared errors** (SSE). In general, we use the **mean of squared errors** (MSE).
 
-For classification the goal is to approximate a posterior probability $t$ having $N$ observation: $$
+For classification the goal is to approximate a posterior probability $t$ having $N$ observation: 
+$$
 g(x_n|w) = p(t_n|x_n)
-$$with $t_n \in \{0, 1\}$ so that $t_n \sim Be(g(x_n|w))$. 
+$$
+with $t_n \in \{0, 1\}$ so that $t_n \sim Be(g(x_n|w))$. 
 We write the MLE for the data and look for the weights which maximize the log-likelihood:
 $$
 argmin_w - \sum_n^N t_n log\  g(x_n|w) + (1- t_n)log(1-g(x_n|w))
@@ -152,11 +148,11 @@ For any point $x_0$ in $L \in \mathbb{R}^2$ we have $w^Tx_0 = -w_0$.
 The signed distance of any point $x$ from $L \in \mathbb{R}^2$ is defined by $w^{*T}(x - x_0) = {1 \over ||w||}(w^Tx + w_0)$.
 The idea is that $(w^Tx + x_0)$ is proportional to the distance of $x$ from the plane defined by $(w^Tx + w_0) = 0$. 
 
-![algebra](./assets/algebra.png)
+![500](./assets/algebra.png)
 
 It can be shown that the error function the Hebbian rule is minimizing is the distance of misclassified points from the decision boundary.
 Let's code the perceptron output as +1/-1: If an output which would be +1 is misclassified then $w^Tx + w_0 <0$.
-* For an output with -1 we have the opposite.
+For an output with -1 we have the opposite.
 
 The goal becomes minimizing:
 $$
@@ -183,8 +179,8 @@ We need to test on an independent test set that can come from a new dataset, by 
 Cross-validation is the use of the training dataset to both train the model (parameter fitting + model selection) and estimate its error on new data.
 
  - When lots of data are available use a Hold Out set and perform validation: hold out error might be biased by the specific split.
- - When we have few data available use Leave-One-Out Cross-Validation (LOOCV): it is unbiased but unfeasible with lots of data.
- - K-fold Cross-Validation is a good trade-off (sometime better than LOOCV).
+ - When we have few data available use [[Machine Learning#Leave-One-Out Cross Validation (LOOCV)|Leave-One-Out Cross-Validation (LOOCV)]]: it is unbiased but unfeasible with lots of data.
+ - [[Machine Learning#k-fold Cross Validation|k-fold Cross-Validation]] is a good trade-off (sometime better than LOOCV).
 
 Be aware of the number of model you get and how much it cost it to train.
 ## Preventing Neural Network Overfitting
@@ -194,15 +190,17 @@ Overfitting networks show a monotone training error trend (on average with SDG) 
 - Train on the training set.
 - Perform cross-validation on the hold out set.
 - Stop train when validation error increases: it is an online estimate of the generalization error.
-- Choose the model with best validation error (save best model). ![cross-validation](./assets/cross-validation.png)
+- Choose the model with best validation error (save best model). 
 
 Model selection and evaluation happens at different levels: at parameters level, when we learn the weights for a NN, and/or at hyperparameters level, when we choose the number of layers or hidden neurons for a given layer. At some point, adding layers or hidden neurons only adds overfitting.
 ### Weight decay: limiting overfitting by weights regularization
 Regularization is about constraining the model "freedom" by using a Bayesian approach: we make assumption on the parameters apriori distribution.
 In general, small weights improve generalization of NN: $P(w) \sim N(0, \sigma^2_w)$ it means assuming that on average the weights are close to zero.
-
-![regularization](./assets/regularization.png)
-
+$$
+\begin{align}
+\hat{w} &= \arg\max_w P(D|w) = \arg\max_w P (D|w)P(w) \\ &= \arg\max_w \prod_{n=1}^N {1 \over \sqrt{2\pi}\sigma} \exp(- {(t_n-g(x_n|w))^2 \over 2\sigma^2}) \prod^Q_{q=1} {1 \over \sqrt{2\pi}\sigma_w} \exp(- {(w_q)^2 \over 2\sigma_w^2}) \\ &= \arg\min_w \sum_{n=1}^N {(t_n-g(x_n|w))^2 \over 2\sigma^2} + \sum^Q_{q=1} {(w_q)^2 \over 2\sigma_w^2} \\ &= \arg\min_w \underbrace{\sum_{n=1}^N (t_n-g(x_n|w))^2}_{\text{Fitting}} + \gamma\underbrace{\sum^Q_{q=1} (w_q)^2}_{\text{Regularization}}
+\end{align} 
+$$
 Regularization can be performed by adding to the loss function the L2 norm (Ridge) or L1 norm (Lasso) of the weights, times a gamma factor. It is a sort of "penalty factor".
 
 To select the proper $\gamma$ we can use hyperparameter tuning tools, or cross-validation:
@@ -226,7 +224,7 @@ The derivatives are bounded between \[0, 1] causing vanishing gradient problem.
 To overcome this problem we can use the Rectified Linear Unit (**ReLU**) activation function: 
 $$
 g(a) = ReLu(a) = max(0,a)
-$$ 
+$$
 $$
 g'(a) = 1_{a>0}
 $$
@@ -245,16 +243,18 @@ It has potential disadvantages:
 Some variants of the ReLU are:
 - Leaky ReLU: fix for the "dying ReLU" problem by adding a steepness if $x \le 0$:
 $$
-x \ \ \ \ if \ x\ge 0
-$$
-$$
-\\ 0,01x \ \ \ otherwise
+\begin{cases}
+	x \ \ \ \ &if \ x\ge 0 \\
+	0,01x \ \ \ &\text{otherwise}
+\end{cases}
 $$
 - ELU: try to make the mean activation closed to zero which speeds up learning. Alpha is tuned by hand.
 $$
-x \ \ \ \ if \ x\ge 0
+\begin{cases}
+	x \ \ \ \ &if \ x\ge 0 \\
+	\alpha (e^x -1) \ \ \ &\text{otherwise}
+\end{cases}
 $$
-$$\alpha (e^x -1) \ \ \ otherwise$$
 ### Weights initialization
 The final result of the gradient descent is affected by weight initialization. We have to avoid zero (identical updated, all weights will learn in the same way, no learning will happen), or big numbers (if unlucky it might take very long to converge, may lead to overfitting or cause varnishing gradient).
 We can take $$w \sim N(0, \sigma^2 = 0,01)$$ that is good for small networks, but it might be a problem for deeper NN.
@@ -267,12 +267,18 @@ We can also use an autoencoder to provide a good initialization when the dataset
 Suppose we have an input $x$ with $I$ components and a linear neuron with random weights $w$.
 Its output is $h_j = w_{j1}x_1 + ... + w_{ji}x_I + ...  + w_{jI}x_I$.
 
-We can derive that $w_{ij}x_i$ is going to have variance: $$ Var(w_{ji}x_i) = E[x_i ]^2 Var(w_{ji}) + E[w_{ji}]^2 Var(x_i) + Var(w_{ji}) Var(x_i) $$
-
-Now if our inputs and weights both have mean zero, that simplifies to: $$ Var(w_{ji}x_i) = Var(w_{ji})Var(x_i) $$
-
-If we assume that all $w_i$ and $x_i$ are i.i.d. we obtain: $$ Var(h_j) = Var(w_{j1}x_1 + ... + w_{ji}x_I + ...  + w_{jI}x_I) = I * Var(w_i)Var(x_i) $$
-
+We can derive that $w_{ij}x_i$ is going to have variance:
+$$
+Var(w_{ji}x_i) = E[x_i ]^2 Var(w_{ji}) + E[w_{ji}]^2 Var(x_i) + Var(w_{ji})Var(x_i)
+$$
+Now if our inputs and weights both have mean zero, that simplifies to: 
+$$ 
+Var(w_{ji}x_i) = Var(w_{ji})Var(x_i) 
+$$
+If we assume that all $w_i$ and $x_i$ are i.i.d. we obtain: 
+$$ 
+Var(h_j) = Var(w_{j1}x_1 + ... + w_{ji}x_I + ...  + w_{jI}x_I) = I * Var(w_i)Var(x_i) 
+$$
 The variance of the input is the variance of the output scaled by $I * Var(w_i)$.
 If we want the variance of the input and the output to be the same we need to impose $I * Var(w_j) = 1$.
 
@@ -424,15 +430,12 @@ Each layer takes as input and returns a volume.
 The volumes (spatial dimension, height and width) reduces, while the depth (number of channel) increases. Initially we have 3 channels (RGB), then for each pixel we take a small neighborhood and it becomes a single number.
 ### Convolutional layers
 It mix all the input components, so that the output is a linear combination of all the values in a region of the input, considering all the channels. The parameters of the layers are called filters.
-
 $$
 a(r, c, l) = \sum _{(u, v) \in U, \ k = 1, ..., C} w^l (u, v, k)x(r+u, c+v, k)+ b^l
 $$
-
 $$
 \forall (r, c) \ \ \ l=1, ..., N_F
 $$
-
 where $(r, c)$ denote a spatial location in the output activation $a$, while $l$ is the channel, and $N_F$ is the number of filters.
 
 Filters (or kernels) must match the number of channels as the input, to process all the values from the input layer. The same filter is used through the whole spatial extent of the input (weights sharing).
@@ -1066,10 +1069,10 @@ We can use models with memory (dynamical systems):
 RNNs are models in which memory is implemented via **recurrent connections**, which allows to take into account the temporal order in which the data is presented. RNNs consist of a distributed hidden,  state to track temporal evolution and allows to store information efficiently, and a FFNN.
 Non linear dynamics allows complex hidden state updates.
 
-RNNs are trained using backpropagation trough time (BPTT) which is a variant of BP. It perform network unroll for U steps, initialize weights and biases to be the same (making the network a repetition of itself across time), compute gradients and update replicas with the average of their gradients.
-
-![BPTT](./assets/BPTT.png)
-
+RNNs are trained using **backpropagation trough time** (**BPTT**) which is a variant of BP. It perform network unroll for U steps, initialize weights and biases to be the same (making the network a repetition of itself across time), compute gradients and update replicas with the average of their gradients.
+$$
+W_B = W_B - \eta \cdot {1 \over U} \sum_{u=0}^{U-1} {\partial E \over \partial W_B^{t-u}} V_B = V_B - \eta \cdot {1 \over U} \sum_{u=0}^{U-1} {\partial E^t \over \partial V_B^{t-u}}
+$$
 Sometime output might be related to some input happened quite long before. However BPTT is not able to train RNN significantly back in time (due to not being able to backpropagate trough many layers).
 At earlier layers of the RNNs the weights are updated to nearly 0 gradient because they receive gradients that are backpropagated through the entire sequence: they experience the most dramatic decay.
 However, more advanced architectures like LSTMs and GRUs mitigate the vanishing gradient problem that standard RNNs face during BPTT.

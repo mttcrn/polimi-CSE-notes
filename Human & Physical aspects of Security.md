@@ -260,3 +260,228 @@ A solid pretext is an essential part of building trust. It is a combination of c
 2. Know how far to go: ensure to answer who are you, what do you want, are you a threat, how long will this take.
 3. Getting support for pretexting: look the part, bring your tools, know your stuff.
 4. Executing the pretext: practice, stretch, communicate, learn how to build a rapport, given the medium that you will use. 
+### Influencing others
+Principles of influence are:
+- **Reciprocity**:
+  Similar to "altruism". 
+  According to [Cialdini](https://www.scirp.org/reference/referencespapers?referenceid=1108133), our brains are unsettled until we repay a favor. Experiments by [Regan](https://journals.sagepub.com/doi/10.1177/0093650207307896) show that a small favor may be more relevant than how much the experimenter was liked by the subject. 
+  Note that the level of an "acceptable request" is dependent on the perceived value of your gift by the receiver. Hence, knowing your victim's tastes and interests increase the chance of obtaining information from the victim. 
+- **Obligation**:
+  Similar perception of debt towards others, but based on social norms or expected behavior, not on previous favor or gifts.
+- **Scarcity**: 
+  If something is made scarce, or less available, its perceived value increases. 
+- **Authority**:
+  It is the right to exercise power. Society teaches us to follow authorities' orders. It can be legal, organizational or social. 
+  [Milgram](https://en.wikipedia.org/wiki/Milgram_experiment) showed in an experiment the effectiveness of authority:
+	- The volunteer was told that the experiment was on memory and learning. He was put in a room as the “teacher”. Another (fake) volunteer was the student. A third person entered as the “experimenter”, in a lab coat (authority). 
+	- The teacher was to ask the student word pairs, and the student would get electrocuted if wrong. For each error, the (fake) voltage increased (from 45 to 450 volts).
+	- The student was to make audible protests and fake being in pain. If the volunteer indicated a desire to halt the experiment, the experimenter said words like “please go on”.
+	- All participants went up to 300V, with 65% to 450V.
+	
+	![300](autority_experiment.png)
+- **Consistency & Commitment**:
+  It is “innatural” to disagree with yourself.
+  After making a commitment, taking a stand or position, people are more willing to agree to requests that are consistent with their prior commitment.
+  “Foot-in-the-Door” experiment by [Freedman & Fraser](https://doi.org/10.1037/h0023552): homeowners were asked to put a large and unattractive “Drive Safely” sign in their front yard. Some were previously asked to put a small “drive safely” sticker on their cars. Only 17% of people asked directly to put the yard sign agreed. 76% of those that were asked to put the sticker first accepted to put the yard sign.
+- **Liking**:
+  People like people who are like them. 
+  Hence, if an attacker manage to make the victim like him/her, they’ll be more prone to help you the attacker or accommodate his/her requests.
+  [Cialdini](https://www.scirp.org/reference/referencespapers?referenceid=1108133) presents the example of Tupperware parties, where instead of having a salesman invite people to gatherings, the process involved a “host” e.g., a friend or neighbor inviting people to their home for a party
+- **Social Proof**:
+  If you don’t know what to do, act like you belong. When people are unable to determine the appropriate mode of behavior, it is easy if you see others acting or talking a certain way, to assume that is appropriate.
+  In social engineering, you may have a partner participating in the same interaction before the victim, or build up a claim that you did that interaction with many people before and it went well.
+- **Fear**:
+  It is an effective tactic due to two main effects:
+	- It activates the amygdala, triggering the fight-or-flight response, which limits rational thinking.
+	- It creates urgency, forcing the user to make a choice without verifying the provided information.
+- **Cognitive Blindness** / **Selective Attention**:
+  It occurs when a person fails to notice a visible but unexpected object or event because their attention is focused elsewhere. 
+  Since in SE the goal of the attacker is to make the victim wrongly assume something, forcing its attention towards a smokescreen is extremely effective.
+  For example, a scammer calls an employee pretending to be IT support and asks them to reset their password. The employee, distracted by the perceived authority, does not question the legitimacy of the request.
+## AI in Social Engineering
+Assumptions are the foundations of SE attacks:
+- In impersonation we can have deepfakes: seeing a person is not a way to authenticate them anymore. 
+- In vishing we have audio-jacking to implement a MITM.
+- Large-scale phishing can now be tailored and access personal information by using an Automatic Spear-Phishing.
+## Email Spoofing
+Email works using a client-server model and follows standardized protocols for sending, receiving, and delivering messages:
+1. Sending the email:
+   A user composes an email using an email client (e.g., Gmail, Outlook).
+   The client sends the email to an SMTP (Simple Mail Transfer Protocol) server which is a MTA (Mail Transfer Agent).
+2. Email transmission:
+   The SMTP server looks at the recipient’s domain using the DNS (Domain Name System) to find the Mail Exchange (MX) records for that domain. The email is routed through one or more mail servers until it reaches the recipient’s mail server.
+3. Receiving the email:
+   The recipient’s mail server stores the email. The recipient retrieves it using IMAP (Internet Message Access Protocol) or POP3 (Post Office Protocol 3).
+
+The SMTP has limited commands:
+- HELO/EHLO: first command sent by the client to the mail server to introduce itself.
+- SRTATTLS: upgrade an existing plaintext connection to an encrypted TLS connection.
+- MAIL FROM: specifies the sender's email address.
+- RCPT TO: specifies the recipient's address (multiple commands for more recipients).
+- DATA: signals the beginning of the email content (headers + body). This is the visible element of the email from the recipient’s email client.
+
+Anybody can send SMTP commands to an MTA server. 
+Email spoofing occurs when an attacker manipulates email headers to send an email that appears to be from someone else. The SMTP protocol does not authenticate the sender by default, making it possible to forge the "From" field.
+### Sender Policy Framework (SPF)
+SPF is a framework through which the owner of a domain can indicate to the DNS which IP addresses are allowed to send emails on behalf of the domain. 
+The SPF record specifies which servers are allowed to send emails for that domain.
+The recipient’s MTA server can check, upon receiving an email, if the sender was allowed to send it.
+- If the recipient’s MTA server does not check, SPF is useless.
+- If the sender’s MTA server does not support SPF, it is spoofable.
+
+1. Sending email:
+   The sender’s SMTP server attempts to send an email.
+2. Email transmission & SPF check:
+   The recipient’s mail server queries the SPF record in the sender’s domain’s DNS settings. 
+   If the sending SMTP server is not listed in the SPF record, the email can be marked as spam or rejected.
+3. Receiving the email:
+   If the SPF check passes, the email proceeds to further authentication checks (like [[Human & Physical aspects of Security#Domain Keys Identified Mail (DKIM)|DKIM]] and [[Human & Physical aspects of Security#Domain-based Message Authentication, Reporting & Conformance (DMARC)|DMARC]]) before being delivered to the inbox.
+   If the SPF check fails, the recipient's mail server can decide whether to reject, flag, or quarantine the email.
+
+However, the sender shown inside the body of the email does not need to be the same as the actual email address!
+Since the end user is a human the attacker does not need to authenticate. If the human
+makes the wrong assumption on what they are looking at, assuming it is authenticated,
+they will not detect the attack.
+
+A **malicious MTA** (Mail Transfer Agent) is an email server that is intentionally set up or misconfigured to facilitate spam, phishing, email spoofing, or malware distribution. It operates similarly to legitimate MTAs but is used by attackers for harmful purposes.
+### Domain Keys Identified Mail (DKIM)
+DKIM works by digitally signing emails using a cryptographic key, allowing the receiving server to verify their authenticity. 
+While SPF validates the sender's MTA IP addresses, DKIM uses asymmetric key pairs to sign part of an email (MAIL FROM and RCPT TO, Date, Subject, ..).
+
+Advantages:
+- It signs the email content, in addition to enduring that the sender is whitelisted. 
+  With SPF, there is NO distinction between users under the same domain. The MTA is assumed to be the only authorized sender, and its IP address is inserted in the SPF authorization list. 
+- The sending MTA holds the private key, not the user, lowering the chance of being stolen.
+Disadvantages:
+- It does not sign the email DATA content, so if an attacker manages to obtain data in transit it can change the content. 
+### Domain-based Message Authentication, Reporting & Conformance (DMARC)
+It is meant to solve the issues of SPF and DKIM by building on top of them. The simple intuition is to ensure that the sender's domain address in the email aligns with the authenticated domain. 
+Domain owners publish a DMARC policy in their DNS records that tells receiving mail servers what to do with emails that fails the authentication checks.
+
+```
+v=DMARC1; p=reject; sp=quarantine; ruf=mailto:fail-report@example.com; pct=50;
+```
+
+In the example:
+- `p=reject` means that the policy if the sender and authenticated domains do not align is to reject.
+- `sp=quarantine` means that if the sender domain is a subdomain of the authenticated domain just put it in quarantine.
+- `ruf=mailto:...` means that a report should be sent to that email if there is a rejection.
+- `pct=50` means that the policy should be applied to only 50% of the emails of the given domain, to allow for gradual rollout.
+
+|           | Approach                                                                                                                          | Limitations/Weaknesses                                                                                 |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| **SPF**   | Verifies sending server's IP address.                                                                                             | Fails with email forwarding.<br>Does not verify the "from" header in the data field.                   |
+| **DKIM**  | Checks email integrity through signatures.                                                                                        | Requires key management. <br>Only part of email is signed to allow forwarding and other modifications. |
+| **DMARC** | Builds on top of SPF and DKIM. <br>Validates the alignment of senders. <br>Allow the sender domain to define the policy to apply. | % of emails to ignore may lead to attacks.                                                             |
+Note that there are other policies that specific email providers may utilize (e.g. spam scores, IP blocklists).
+However, it is important to clarify that if the spoofed domain does not implement any approach, there’s nothing that can really be done on the receiver side.
+# Physical Security
+It is that part of security concerted with **physical measures** designed to:
+- **Safeguard personnel**: protecting people within an environment.
+- **Prevent unauthorized access**: securing equipment, installations, material and documents from being accessed by unapproved individuals.
+- **Counteract malicious actions**: reducing the risk of espionage, sabotage, damage and theft.
+
+While STRIDE is not fully functional for physical security, as it was originally developed for software threat modeling, it can still be applied:
+- **Spoofing**: 
+  It refers to deceiving a system or person into believing that the attacker is a legitimate entity or person.
+  It is one of the most used attacks. It can be done by breaking the mechanism used for identification (e.g. bypassing biometric sensors or badge readers), or to break the "person" mechanism for identification (which is not that trivial) by **impersonation** of people. 
+  Note that physical access to devices may also pave the way for the execution of other spoofing attacks. 
+- **Tampering**: 
+  It is the unauthorized interference with or alteration of equipment or assets.
+  It is the most pervasive attack. It means to "touch or make changes to something when you should not, especially when this is illegal". Common devices that block access to something are often not meant to stop an indefinitely long attack. 
+- **Repudiation**: 
+  In physical security contexts, repudiation involves the attacker's ability to deny having performed an action, particularly when access logs or histories are incomplete.
+  It is meaningful only if there is history of events. It is particularly relevant since the attacker needs to be physically present within the premises. 
+- **Information Disclosure**.
+  While often seen as a digital threat, in a physical context it involves the unauthorized exposure of sensitive information through physical media or environments.
+  For example **visual hacking** means observing confidential information on screens or documents left in open places, while **physical breach** consist in stealing documents or portable storage devices from secure locations.
+- **Denial of Service**:
+  The basic implementation of a DoS is not digital (e.g. cutting cables or disabling a key piece of hardware).
+  Although digital DoS attacks overwhelm systems with data, the physical version involves targeted disruption through tangible actions.
+- **Elevation of Privilege**:
+  It occurs when an attacker gains access to a system that they are not authorized to use, essentially obtaining privileges that should be restricted.
+  All physical threats presented up to now may be summed up as obtaining access to somewhere you should not. Hence, physical security goals can be summed up as identify asset locations and stop unauthorized access to them.
+
+Authentication and authorization, plus detection can prevent/detect these threats:
+- **Perimeter design**: understand what are the requirements and capabilities derived from being in a zone and define the boundaries of that zone, then ensure that those are "defendable".
+- **Access control**: authenticate each way to get inside, potentially with different access levels.
+- **Surveillance**: beginning of "detection system", someone directly or indirectly checking relevant locations. One may "force" its way trough an access control zone (e.g. picking a lock, breaking a wall, killing the guard). We want to detect/prevent the attackers to obtain access trough recognition. 
+In short: Deter, Delay, Detect, Respond.
+
+|          | Goal                                                   | What to do                                                                   | Examples                                                                                    |
+| -------- | ------------------------------------------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| Deter    | Discourage attackers from attempting instrusion.       | Use visible security measures to create a psychological barrier.             | Fences, warning signs, lighting, surveillance cameras, security patrols.                    |
+| Delay    | Slow down the intruder to buy time for a response.     | Introduce obstacles that increase the effort and time needed to gain access. | Locked doors, security turnstiles, barriers, reinforced entry points.                       |
+| Detect   | Identify unauthorized access or attempts in real-life. | Systems that alert to breaches as they occur.                                | Motion detectors, CCTV, alarms, access control logs.                                        |
+| Response | React effectively to intrusions or security events.    | Personnel or systems to neutralize threats.                                  | On-site guards, law enforcement notification, lockdown procedures, incident response plans. |
+## How to access a physical location
+Before lockpicking, we can attack the door by:
+- Bypass techniques such as shimming and releases.
+- Cloning or key reuse.
+- Destructive techniques such as drilling or cutting.
+### Lockpicking
+Lockpicking is essentially the art and science of bypassing a lock without using its intended key, and it relies on understanding both the design of the lock and the mechanics behind its operation.
+
+![](./assets/lock_anatomies.png)
+
+Most lockpicking techniques focus on common pin tumbler locks: these locks consist of a series of **spring-loaded pins** that prevent the lock from turning unless the correct key aligns the pins at what’s called the shear line. When a key is inserted, it pushes each pin so that the gap between the pins aligns perfectly, allowing the cylinder to rotate and unlock the mechanism.
+The goal of lockpicking is to create a situation inside the lock where the internal components line up as if the correct key were present. This is typically achieved by:
+- **Manipulating Pins:** using a pick to push pins up individually.
+- **Applying Tension:** using a tension tool (a torque wrench) to apply rotational force on the lock to create a binding effect, where one or more pins may stay slightly in place due to friction, allowing the attacker to set each pin at the shear line incrementally.
+
+In a typical pin tumbler lock, not all pins are free to move when tension is applied. Often, one or two pins become “bound” (due to slight differences in resistance). A lockpicker works on these first:
+- **Identify the Bound Pin:** by feeling for resistance, the picker determines which pin is bound.
+- **Set the Pin:** carefully lifting the bound pin until it reaches the shear line will cause it to “set” in place, meaning it no longer resists the turning of the lock.
+- **Repeat:** this process is repeated for the remaining pins until all have been set, allowing the cylinder to rotate fully and the lock to open.
+This method is called **single pin picking** (SSP) since it works on one bound pin at a time, setting it at the shear line until the lock opens.
+
+When picking a lock, fine control is crucial. Two common issues you might encounter are:
+- **Oversetting a pin**: it occurs when you lift a pin past the optimal point, beyond the shear line.  When a pin is overset, it can either bind or cause misalignment with the rest of the pins.
+- **Forcing the key pin through the shear line**: excessive force or improper manipulation can cause the key pin to be pushed too far, making it cross beyond the shear line. This might happen when too much pressure is applied, or if the pick accidentally engages both the key pin and the paired driver pin simultaneously.
+  It can misalign the lock’s internal mechanism, requiring the attacker to start over.
+
+![500](./assets/security_pins.png)
+Security pins add an extra layer of complexity to lockpicking by intentionally generating false signals, like false sets and inconsistent tactile feedback: their irregular surfaces can cause the picker to receive inconsistent tactile feedback, making it difficult to determine when the pin has reached its correct position. 
+### Electronic door mechanisms
+#### RFID/NFC badges
+They are commonly used for electronic access control systems. There are several implementations with varying levels of security:
+- 125 kHz RFID cards (e.g. HID).
+  They generally do not have any significant security implementation. They store a fixed ID that can be easily duplicated. 
+- 13.9 MHz NFC cards (e.g. Polimi's).
+  They support more complex protocols, such as MIFARE Classic 1K. A while ago it was discovered to be broken, allowing to crack the keys of a card through brute forcing. Note that Polimi’s student cards are now “emulated” mifare cards, while they can be copied knowing the keys, the bruteforce process is not feasible anymore.
+### Remote Entry Systems
+The command needs to be sent through an **insecure channel** by definition. 
+#### Single code: basic replay attacks
+The key and the car share a symmetric key. The secret key is used to generate always the same message. Upon pressing the key button, the key generates and sends the message. 
+
+This is exploitable trough sniffing: the attacker, being in the general vicinity of the key or car, it can sniff the message and replay it at will. 
+![](./assets/replay_attack.png)
+#### Rolling code: jam and replay attack
+The key and car share both a secret key and a seed, and both have a counter.
+The key increases the counter every time it generates a new message. The car, upon reading a valid message with counter $n$, shifts the list of valid counters to $[n+1, n+100]$.
+
+If the attacker just sniffs the message and replays it, it fails. 
+The car has received the message from the actual key (with counter $n$) and increased its counter to accept only messages from counter $[n+1]$. Therefore, replaying the message does not work.
+![](./assets/replay_attack_rolling_code.png)
+
+However, the attacker can stop the message $(n)$ from the key from reaching the car, while saving it. 
+In this way, the car never increases its counter and the message of the attacker is valid. Usually the owner of the car will press the key again, since it wants to get in the car, generating $(n+1)$. The attacker can then send $msg(n)$ while saving $msg(n+1)$ and the car still accepts $(n+1)$.
+
+![](./assets/jam_replay_attack.png)
+
+#### RKS (remote keyless system): replay/forward attacks
+The issue with single and rolling codes is that there is no two-way communication. Newest keyless vehicles continuously generate challenges for the key to solve.
+The key is the only one that knows the secret, and therefore can solve the challenge.
+
+If the attacker jams the signal, the challenge never reaches the key, not allowing for the key to solve it and be replayed.
+The attacker needs to not jam the challenge but the message. While the implementation of such attack is challenging, it is theoretically feasible. Therefore, adding a simple expiration time to the challenge of the vehicle ensures that the message cannot be replayed "offline".
+
+![](./assets/RKS_jam_attack.png)
+
+Nonetheless, keyless systems have another issue: the key does not need to be pressed by
+the victim, allowing an attacker to execute a replay/forward attack when the victim is not
+near, yet not too far away to make the challenge expire. The only solution is to have
+stringent deadlines.
+![](./assets/replay_forward_attack.png)
+# Cyber-Physical Systems Security
+A cyber-physical system identify contexts integrating embedded computers, networking, automated controls and sensors/actuators.
