@@ -125,7 +125,7 @@ STRIDE-per-interactions assumes all threats can be represented in the interactio
 | Data Store      |     | yes | yes/no | yes | yes |     |
 | Data            |     | yes |        | yes | yes |     |
 ### MITRE's ATT&CK
-MITRE ATT&CK (Adversarial Tactics, Techniques, and Common Knowledge) is a publicly available framework that compiles observed adversary behaviours.
+MITRE ATT&CK (Adversarial Tactics, Techniques, and Common Knowledge) is a publicly available framework that compiles observed adversary behaviors.
 The framework is organized as a matrix:
 - Columns represent tactics (why) - the adversary's objective at a given phase of the attack. 
 - Rows represents techniques (how) - methods that an adversary may use to accomplish the foal. 
@@ -485,3 +485,393 @@ stringent deadlines.
 ![](./assets/replay_forward_attack.png)
 # Cyber-Physical Systems Security
 A cyber-physical system identify contexts integrating embedded computers, networking, automated controls and sensors/actuators.
+![400](./assets/cyber_physical_system.png)
+- **Distributed controllers** are used for computing: they can be bare-metal, RTOSs or stripped down Linux distros.
+- **Network**: it uses serial protocols, nowadays also parallel IP-compatible connections. It also consist of sensor networks (low-power, lossy wireless links).
+- **Sensors** and **actuators** are analog controls that transform an analog signal into a digital, discrete one. 
+- A CPS intrinsically has **control processes**, found in devices or control rooms, that decides how to act on sensed information. 
+- The physical environment provides access to the system, but also limits the behavior of the system.
+
+Requirements and characteristics of CPSs:
+- **Real-Time Interactions**:
+  CPSs monitor and responds to changes in the physical environment with **short timing guarantees**. Tasks must meet strict deadlines to ensure correct system behavior.
+- **Resources Constraints**:
+  Often operate on limited power (e.g. battery-powered sensors or embedded controllers), with minimal memory and computational resources. Efficiency in energy consumption and computation is essential. 
+- **Feedback Loops**:
+  Continuously adjust system behavior based on sensor inputs.
+- **Distributed Architecture**:
+  Geographically dispersed subsystems, such as ICS, SCADA, or smart transportation systems. Networks may have variable latency or reliability. 
+- **Safety** and **Reliability**:
+  System failures can have physical consequences, including injury, loss of life, or environmental harm, necessitating rigorous safety and fault tolerance mechanism. 
+- **Long Life Span**:
+  CPSs are often deployed for decades. They remain operational over time, yet threats evolve. Companies may stop servicing CPS components before their end of life. New components also need to ensure backward compatibility. 
+## Applying CIA
+- **Availability** becomes paramount due to safety, product line, and overall tasks of the system. 
+- **Integrity** remains relevant due to safety risks.
+- **Confidentiality** "loses" its role as most relevant element, but has its space.
+
+The concept of **safety** becomes relevant, although not applied to data.
+
+Enterprise systems are more standardized and structured: they have more developed modeling frameworks. CPSs require understanding threat modeling basics to adapt them (that's why we do not use only MITRE ATT&CK but less constrained frameworks).
+Moreover, CPS are often critical systems, which implies state actors may be a valid threat. 
+### Physical Layer Security
+Most relevant threats are related to the **tampering** with field devices, sensors, and
+networks, **spoofing** devices, or in less common cases **information disclosure**. 
+Destruction of devices or networks may lead to denial of services.
+Access to devices may allow to flash firmware or tamper with settings.
+Physical connection to networks (wired or wireless) allows to sniff/tamper with data.
+### Control and Actuation Layer
+Control loops parameters (controller parameters), process tasks (setpoint, objective values) and sensor data (feedback/output) may be targets of attacks, to obtain specific or disruptive outputs through tampering, spoofing or others (e.g. micro-defects injection, robo-punch). 
+Attack surface for such attacks are therefore most of the other layers. What's characteristic is the impact of the attack.
+
+Countermeasures focus on control loops: we have to make a control design and logic that ensures that the output does not go outside "safe" boundaries.
+- Robust control theory: control algorithms that can tolerate a significant amount of modeling error or sensor noise. A similar concept can be obtained with saturation of the output. Useful only if the controller code is not tamperable. 
+- Fault-tolerant control: if a sensor or component "fails" (e.g. is tampered with) switches to a second software/hardware component.
+- Hardware redundancy: using multiple controllers or duplicated hardware paths in parallel. If the output of the two components differ, raise an alarm. 
+- Model-based anomaly detection: develop a model of normal process behavior. Flag anomalies when real measurements deviate too far from predicted values. 
+Note that if designed only for safety, it may be bypassed while if designed for security, usually it is located in a component different from the controller. 
+### Sensor Layer
+A device that detects or measures a physical property and converts it to an analog or digital signal. 
+Sensors can be active (they generate the stimulus that they successively read, such as radars) or passive (accept external physical stimuli, such as a thermocouple).
+A sensor receives in input a stimulus from a measurand (the quantity that the sensor
+intends to measure).
+![600](./assets/sensor.png)
+- The transducer produces an analog electrical representation of the measurand by measuring the stimulus (e.g. a photoresistor transducer decreases its electric resistance as photons hit its surface).
+- Analog signal processing (e.g. amplifier and filters) are meant to increase the amplitude of the perceived signal and remove noise.
+- ADC transforms the analog signal (voltage) into a digital value (bits). Such digital data is then forwarded for processing/control.
+
+Attacks that aim at tampering with the value of a sensor can be classified depending on the position of the attacker (as usual).
+#### Measurand attacks
+  A direct modification of the measurand to achieve the attack goal (e.g. inserting an object in front of a radar/lidar to enforce it to act on it or copying a fingerprint).
+  
+  For passive sensors, we can either increase in precision to make the attack more difficult, or use sensor fusion to recognize anomalies (e.g. temperature or electrical conductivity of fingers to ensure they are not plastic).
+  For active sensors, it is possible to watermark the active sensing process (e.g. patterns in the LiDAR laser generation or frequency to avoid injection of false points).
+#### Transduction attacks
+Analog attacks where the victim sensor circuitry transduces an attacker’s malicious physical signals to analog ones. It may be a modification of the correct stimulus or a change in the perceived stimulus (e.g. soundwave to attack gyroscopes and accelerators, lasers to tamper with LiDARs, ultrasonic waves to inject audio in microphones). It is the most simple attack.
+
+An example is to use light to send a stimulus to a microphone, triggering various voice commanded devices with clear requests.
+Another examples is to use audio to disrupt drone operations by tampering with its accelerators and gyroscopes perception.
+
+Detection countermeasures: 
+- Randomization of active sensors probing.
+- Verifying the actuation of a given/purposefully inserted input.
+- Detecting out-of-band signals.
+Prevention countermeasures: 
+- Shielding the sensor through “physical” barriers, or through limiting the spatial/temporal/spectral surface.
+- Filtering the analog signal before ADC.
+- Randomization of sample collection.
+- Randomization of active sensors probing
+- Use sensor fusion.
+#### Transmission attacks
+Attacks that modify, create, or delete digital sensor data once the conversion has been
+executed, either during transmission or storage (takes place after the sensor has collected the data).
+Not directly related to the sensor per-se, we will discuss them in other layers (e.g. network).
+## Computation Layer
+The attacks are based on firmware and software vulnerabilities:
+- **Application layer vulnerabilities**: lack of authentication is a more common problem than one would expect.
+- **Unpatched firmware vulnerabilities**: lack of software updates for goods that are old and not serviced anymore.
+- **Insecure firmware updates**: Over-the-Air software updates are not always well authenticated.
+- **Supply chain attacks**: given the critical infrastructure in which they are used, it is not to exclude that vulnerabilities / backdoors may be implemented by the supplier or through the supply chain.
+
+The most effective countermeasures is based on the idea to validate the firmware before executing it. If the firmware is updated, it needs to demonstrate being signed by the correct author. To do so, we need:
+- A pair of public-private keys. 
+- A root-of-trust bootloader and a secure storage for the public key (it may be single- or multi-stage, ROM, TEE and HSMs, rollback protection can be used to avoid old firmware versions).
+- An offline key sharing processes to see secure software updates. 
+![](./assets/secure_boot_sw_updates.png)
+In multi-stage secure boot allows to change the key stored in the secure memory by validating it. 
+We have to ensure that
+### Network Layer
+OT networks are used to monitor and control physical processes in industries like energy,
+manufacturing, transportation, and utilities.
+Differently from IT networks they usually focus on availability, safety, and real-time
+properties, and not, for example, high bandwidth.
+Protocols at any stack layer do not often consider authentication or encryption, mostly
+due to low power or/and low bandwidth requirements.
+
+Access to the network can be achieved through either remote access to devices used to handle the network and its components, or physical tapping, or supply-chain. 
+We already know the idea of attacks that can be implemented in networks.
+- **Spoofing** devices is easy as long as their packets are not authenticated.
+- **Tampering** is interesting in contexts like [daisy-chains](https://en.wikipedia.org/wiki/Daisy_chain_(electrical_engineering)).
+- **Repudiation** goes alongside spoofing, since packets are not authenticated.
+- **Information disclosure** is not even to be discussed, almost no data is encrypted (but also often not of particular value per se).
+- **Denial of Service** is particularly relevant both for the impact both since it is often feasible by design due to safety allowing “amplification” factors.
+- **Elevation of Privilege** may be achieved in hierarchical networks by obtaining the role of the “master”.
+#### Message Authentication Codes (MAC)
+The idea is to use a shared symmetric key to generate a small sequence of bits that can be shared to prove the integrity and authenticity of a message.
+A common implementation for HMAC is $H(key // H(key // message))$ instead of $H(key // message)$ due to length extension attacks. 
+The "short" message can be appended to the data sent over the network with low computation, and relatively low bandwidth.
+However, the problem of a shared symmetric key remains.
+#### Intrusion Detection Systems
+OT networks usually require less interaction from humans. Therefore, they become more
+predictable. This allows for easier detection of uncommon behavior through analysis of the
+packets passing through.
+# Automotive Security
+The automotive ecosystem players are:
+- Automotive manufacturers.
+- Original equipment manufactures.
+- Processor/semiconductor/board companies.
+- Regulations and state requirements.
+- Fleet management companies (e.g. Uber, taxis, truck hauling companies, postal services, rental, etc.).
+All these players have a role in the development of new vehicles. 
+
+Safety Measures in smart vehicles are: 
+- Airbags and belts.
+- Anti-lock braking systems and electronic stability controls.
+- Pedestrian detection and braking systems.
+- Drowsiness detection.
+- Lane assist.
+- Emergency call.
+- Overhead & night vision.
+- Intersection and blind-spot scanning.
+Then, there are comfort and other in-vehicle features (not to ensure security):
+- Cabled, Wi-Fi and Bluetooth to phone communication.
+- Adaptive cruise control.
+- Personalized driving settings.
+- Navigation systems.
+- Entertainment systems (e.g. games).
+In-vehicle technologies:
+- Sensors.
+- On-board networks (e.g. Controller Area Network (CAN), Ethernet, Local Interconnection Network (LIN), FlexRay which is a Brake-by-Wire system).
+- Diagnostic protocols for on-board communication.
+- Electronic control units, infotainment systems (e.g. Android, Linux, Windows) and Advanced Driver-Assistance System (ADAS).
+## On-Board Networks (CAN) security
+CAN was developed by focusing on NO issues with electromagnetic interference, broadcast nature and arbitration focused on favoring the most important messages. 
+It is the current de-facto standard based on data link and physical layers. 
+The maximum network length is 40m, the maximum baud rate is 1Mbps (usually 500/200kbps). 
+![[Pasted image 20250516114402.png]]
+It is a multi master, broadcast, bus topology network. 
+- The physical layer enables differential signaling over two wires. 
+- The **data link layer employ CSMA/BA** (Carrier Sense Multiple Access with Bitwise Arbitration) enabling (almost) **real-time**. 
+
+From the security point of view:
+- The presence of multiple **external interfaces (OBD-II, Wi-Fi, Bluetooth)** increases the attack surface.
+- The CAN bus, lacking authentication and encryption, is a key target for attacks originating from compromised ECUs or external devices.
+- Compromising the **Head Unit or Communication Control Unit** can provide access to critical systems through the CAN or MOST bus.
+### CAN frames
+In a CAN we can have 4 types of frames: data, remote, error or overload (deprecated).
+Data frames are standard data packet of any kind of information. It can have two format: 11bit or 29bit identifier. They are made to ensure compatibility. 
+
+![](./assets/data_packets.png)
+
+| Field name                        | Length (bit)         | Purpose                                                                                                                  |
+| --------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| start-of-frame                    | 1                    | denotes the start of frame transition                                                                                    |
+| identifier                        | 11                   | a unique identifier which also represent the message priority                                                            |
+| remote transmission request (RTR) | 1                    | must be dominant (0) for data frames and recessive (1) for remote request frames                                         |
+| identifier extension bit          | 1                    | must be dominant (0) for base frame format with 11bit identifier, recessive (1) for extended frame with 29bit identifier |
+| identifier                        | 18                   | second identifier (can be omitted)                                                                                       |
+| reserved bit (r0)                 | 1                    | must be dominant (0), but accepted as either dominant or recessive                                                       |
+| data length code (DLC)            | 4                    | number of bytes of data (0-8 bytes)                                                                                      |
+| data field                        | 0-64 <br>(0-8 bytes) | data to be transmitted (length dictated by DLC field)                                                                    |
+| CRC                               | 1                    | cyclic redundancy check                                                                                                  |
+| CRC delimiter                     | 1                    | must be recessive (1)                                                                                                    |
+| ACK slot                          | 1                    | transmitter sends recessive (1) and any receiver can assert a dominant (0)                                               |
+| end-of-frame (EOF)                | 7                    | must be recessive (1)                                                                                                    |
+IDs enable priority: a lower value indicates higher priority, i.e. messages with high real time requirements. 
+Each ECU "owns" a set of IDs which is exclusive. The data field of each ID has a fixed meaning. Each ECU "subscribes" to a list of IDs and knows the meaning of their data. 
+The majority of packets are periodic. 
+
+DBC files (proprietary) describe what's inside the data field of each ID.
+![](./assets/DBC_file.png)
+Error frames are just 6 bit-time sequences of zeros or ones. They are used to notify that the current data/remote frame has to be considered not valid.
+Error frames are needed when:
+- Sender ECU sent a wrong bit.
+- Receiver ECU reads something non CAN-compliant.
+- Conflict on the bus.
+Error frames are sent while the bus is idle to request a pause from transmission, so they are not often used in newer ECUs. 
+### Error Handling: Fault Confinement
+In automotive systems, fault confinement involves monitoring and managing communication errors to maintain system integrity.
+Each unit can be in one of the following state:
+- **Error active**: the unit is fully operational.
+- **Error passive**: the unit is still operational but with limited communication capability. It cannot transmit active error frames but only passive ones.
+- **Bus off**: the unit is disconnected from the CAN bus and cannot participate in communication.
+Each unit maintains two error counter, **transmit** and **receive**, which increases by 8 every time an error occurs:
+- when any counter reaches 128 the unit goes into error passive state.
+- when the transmit error counter reaches 256, the unit shuts down the CAN controller. 
+![](CAN_FSM-simple.png)
+Proper error handling ensures that faults are confined and do not propagate throughout the network.
+
+The processor is at higher layer. 
+The CAN controller reads the bits and translates them in actual packets with meaning.
+The CAN transreceiver translates only electric signals in bits and vice-versa.
+![600](./assets/microcontroller.png)
+A CAN log contains only data frames (and remote, rarely). All others are "removed" by the CAN transreceiver in advance.  
+An attacker which does not have a way to bypass the CAN Controller cannot write and read arbitrary bits on the bus.
+### Attack Goals
+- **Spoofing**: sending messages with any ID is accepted in CAN, even ones owned by other ECUs. A basic receiver accepts ALL messages.
+- **Tampering**: injecting malicious messages to spoof legitimate nodes or send false commands or modifying data fields of ongoing messages.
+- **Repudiation**: CAN lacks message authentication, allowing attackers to send forged messages without attribution.
+- **Information Disclosure**: as in many other fieldbus-like networks, there is no encryption standard. Hence, being on the bus allows to sniff any data.
+- **Denial of Service**: in automotive networks using CSMA/BA, an attacker can ALWAYS exploit the **arbitration mechanism** (according to each node competes for access to the bus by transmitting its identifier, the node with lowest ID has highest priority) to dominate the bus. An attacker can write on the bus at the speed that is allowed by its hardware, injecting high-volumes of low ID packets (e.g., ID 0x00). This can effectively starve higher-ID messages, causing system malfunctions or data loss.However, it is an easily visible attack. 
+- **Elevation of Privileges**: exploiting diagnostic protocols (e.g., UDS) to perform unauthorized actions (e.g., unlocking doors, disabling airbags).
+#### Force a bus-off state 
+The goal of this attack is to **isolate a specific ECU** by repeatedly causing transmission errors, forcing it into the **Bus-Off state**, where it can no longer communicate on the CAN bus.
+The attacker can **silence a critical ECU**, preventing it from transmitting essential data (e.g., brake commands, sensor data).
+
+1. Discover the **victim ID**.
+2. **Detect victim ID on the bus**:
+   Continuously listen for the victim ECU’s messages to identify when it is transmitting.
+3. **Find a ‘1’ (recessive) bit in the packet:**
+   Identify a '1' bit in the victim’s message, which can be overwritten. CRC delimiter is '1' by design.
+4. **Overwrite it with a '0' (dominant):**
+   Transmit a dominant bit at the exact timing, causing a **bit error**.
+   This forces the victim to detect a transmission error and increment its **Transmit Error Counter (TEC)**.
+5. **Repeat 32 Consecutive Times:**
+   By causing 32 consecutive errors, the attacker rapidly increments the TEC.
+   Once the TEC reaches **256**, the target ECU enters the **Bus-Off state**, effectively disconnecting it from the network.
+
+- This attack can enforce DoS, with a **ransomware** attack: the attacker could demand a ransom in exchange for ceasing the DoS attack or restoring normal ECU functionality.
+- It is also able to **evade intrusion detection systems** by silencing compromised ECUs to prevent detection. 
+
+The main limitation is that **physical access is required**: some possible mitigations are implementing access controls, securing physical entry points, and deploying encryption/authentication at critical nodes can reduce the risk.
+## Intrusion Detection
+It involve monitoring network traffic to identify anomalies that indicate potential attacks. Typically, a limited number of devices are deployed to read and analyze network traffic for inconsistencies. IDS can be categorized as follows:
+1. **Frequency based** IDs:
+	- CAN data is usually periodic, and when they are not, they are still sent at a specific frequency.
+	- Attackers often attempt to overwrite the messages sent by an ECU to convince another one of something.
+	- However, if the attacker disables or isolates the original sender, the bus frequency can be kept identical, making detection more challenging. 
+2. **Specification based** IDs:
+	- They rely on enforcing rules derived from **physical specifications** (e.g. voltages/power), **logical specifications** (e.g. ID ownership) or **protocol properties** (e.g. detect bus-off victim).
+	- Make it impossible for the attacker to exploit some specific vulnerabilities (e.g. buffer overflows due to too high values, sending in ID from an ECU that was not supposed to send it). 
+	- They are extremely case-specific, hard to generalize. They may require testing per-vehicle. 
+3. **Payload based** IDs:
+	- They can be detected with **data-related rules** (e.g., some bits may have fixed values), **multi-value analysis** (e.g., speed + rpm + gear), **time-series analysis** (e.g., speed increase not realistic) or **machine learning based rules**. 
+	- Impossible for the attacker to send non-protocol compliant request. So, it is extremely complex to comply to all the rules while being able to implement a meaningful attack. 
+	- Crafting payloads that maintain protocol compliance while executing an attack is computationally intensive and prone to detection.
+	- Finding rules that are **strict enough to detect attacks** without generating **false positives** is difficult.
+
+The following diagram represents the **CAN Bus Finite State Machine (FSM)** for message transmission and error handling. It illustrates the various states a CAN controller can enter during the process of sending or receiving a frame, as well as handling errors.
+![[CAN_FSM.png]]
+### Intrusion reaction
+When an intrusion is detected in a vehicle’s CAN network, the response strategy is critical. Potential responses are:
+- **Isolate the suspected attacker node**: however, identifying the attacker is challenging, and unintended isolation of a legitimate ECU could impair vehicle functionality.
+- **Send alert/notification**: however, defining the right recipients and the content of the alert is crucial.
+- **Switch to a safe mode**.
+- **Change message IDs**.
+- **Send data to analysts**: we have to ensure that data is transmitted securely to avoid further exploitation. 
+
+1. Define which ECUs/IDs to defend.
+2. Monitor the bud from the beginning of communication
+3. Count the TEC (Transmit Error Count) of each ECU.
+4. Detect when the ECU goes bus off. 
+5. If the ECU writes on the bus again, flag as attack. 
+#### Countermeasures
+- **Gateway**:
+  Acts as intermediaries that separate one subnetwork from another, controlling traffic flow between them. 
+- **Subnetworks**: divide the vehicle network into **isolated zones** to prevent direct communication between non-critical and critical ECUs. 
+- **Firewalls** (in gateways): monitor and control traffic entering or leaving a subnetwork, preventing unauthorized access or data leakage. 
+#### Authentication protocols
+When implementing authentication protocols in automotive networks, several key properties and challenges must be considered.
+
+**HMAC** (Hash-Based Message Authentication Code) is a cryptographic technique that uses a secret key and a hash function to produce a unique authentication code for a given message. It is commonly used to verify data integrity and authenticity. 
+A major challenge is key management: securely distributing and updating keys across ECUs is complex. 
+We have to account for replay attacks: without nonce or timestamp mechanisms, an attacker can **replay previously captured HMACs**.
+Moreover, computing hashes adds processing overhead, potentially affecting time-sensitive applications. 
+ 
+- **Backward compatibility**:
+  We have to ensure that newer authentication protocols can coexists with older systems and legacy ECUs without causing conflicts.
+- **Centralized** vs. **distributed authentication**:
+  In centralized authentication a single ECU handles the mechanism for all nodes. It allows easier key management and policy enforcement. However, it is a single point of failure. 
+  In distributed authentication, each ECU independently authenticates messages using locally stored keys or certificates. However, it requires a complex key management since each node require unique keys or certificates. 
+- **Key distribution**.
+- **Security Level dependent on hash dimension**: as the security strength of HMAC is directly related to the length of the hash output.
+
+Due to computational and bandwidth constraints, authentication is **typically reserved for non-periodic, critical data transfers** (e.g., firmware updates to prevent malicious code injection, remote diagnostics to verify legitimate service requests, over-the-air updates to prevent spoofing or replay attacks).
+
+**[NXP’s TJA115x](https://www.nxp.com/products/interfaces/can-transceivers/secure-can-transceivers:SECURE-CAN)** series is a family of **secure CAN transceivers** designed to enhance security in automotive networks. These transceivers integrate security mechanisms directly into the CAN interface, providing an additional layer of protection against CAN-based attacks.
+### Application and Diagnostic Protocols
+**OBD-II (On-Board Diagnostics II)** is a standardized diagnostic system widely used in modern vehicles to monitor and report the status of various vehicle subsystems. It is a critical part of the application layer in automotive networks. It is mandatory in many countries. 
+
+**Unified Diagnostic Services** extends beyond emissions to general ECU reprogramming, security, and advanced diagnostics. The majority of the “requests” are accessible only once authenticated with the ECU
+## Real-world Attack Limitations
+In real-world scenarios, attackers face several practical limitations when attempting to manipulate or disrupt automotive networks. These limitations are often due to **ECU reactions, protocol specifications, and physical hardware constraints**.
+
+| Strategy                     | Limitation                                                                          |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| Flood the bus with data.     | ECU may reject inconsistent or incrogruent data.                                    |
+| Move ECU to diagnostic mode. | May not be feasible while the vehicle is moving at speed.                           |
+| Move ECU to bootrom mode.    | Must be executed while the vehicle is stationary and powered down.                  |
+| Shut ECU off.                | Potentially dangerous and may not work at high speed or during critical operations. |
+| Bus-off drop attack.         | Requires hardware that can manipulate CAN state effectively.                        |
+
+- Attack strategies are often limited by **ECU-specific behaviors** and the physical state of the vehicle (e.g., stationary vs. moving).
+- Techniques such as **ECU flashing and bus-off attacks** require specialized hardware and knowledge of internal ECU logic, such as checksum algorithms.
+- Mitigation strategies can be implemented by **monitoring for inconsistent messages, limiting flash attempts, and requiring secure authentication for critical functions**.
+# Intrusion Detection (in CPS)
+The assumption behind intrusion detection is that not all attacks can be prevented, and not all attackers can be blocked from accessing the system.
+In many occasions, some mitigations may not be implementable. It may therefore be necessary to check for attack events on the system. 
+Intrusion or Attack Detection Systems (IDS or ADS) do not directly solve the issue. 
+The reaction to the attack may be vastly different from case to case, and the design of the reaction has to be considered. 
+
+
+|      | Signature-based detection                                                                                                                                                                 | Anomaly-based detection                                                                                                          |
+| ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+|      | The IDS maintains a library of attack signatures, such as specific payloads, traffic patterns or malware code snippets.<br>Incoming data is scanned for matches against these signatures. | The IDS detects deviations from normal behavior in network traffic or system activities.                                         |
+| Pros | Highly effective in detection of known threats.<br>Low false positive.                                                                                                                    | Detects also novel attacks.<br>It may self-update the baseline pattern.                                                          |
+| Cons | Incapable of detecting novel attacks.<br>Requires updates to the DB.                                                                                                                      | Requires a predictable behavior.<br>Potentially high false positives.<br>Requires substantial<br>training to learn new patterns. |
+
+## Phases of ID
+### Design/Training
+The system learns the normal behavior/signatures and builds models that will be used in the detection phase. 
+- The data used for training may be historical or synthetic. 
+- The features extracted in training are fundamentals.
+- A validation step is needed to ensure that the training was successful.
+Note that the training phase is not necessarily before detection. 
+Design/Training can be executed through experts, by defining rules/collect signatures/build heuristics models from data or AI, particularly good at defining models of a given behavior.
+### Detection
+The system detects deviations from normal behavior or matches known attacks signature. 
+- The monitoring needs to be done in real-time, or measures to maintain the freshness of the evaluated data are necessary.
+- The system needs to evaluate the same features found in training. 
+About the performance:
+- Evaluating real-world effectiveness of an intrusion detection system (IDS) before deployment is challenging
+- False positives can be problematic, especially if they trigger automated responses or alerts. 
+- Some IDSs claim near-perfect detection rates, but these claims may not hold up in diverse or dynamic environments.
+
+Detection can occurs in different places: 
+
+| Host-based                                                                                                                                                                | Network-based                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Monitor activities on a single host, and checks for system logs, file changes, application activity, and/or resource usage. <br>Commonly used for malware detection. <br> | Monitor activities based on one or multiple networks.<br>Commonly analyze frequency and flow of packets, payload content, or protocol compliance. |
+| Usually software running with some privileges.                                                                                                                            | Either implemented on strategic nodes such as routers and switches, or connected as a standalone hardware component.                              |
+Commonly, in OT/CPS, network-based IDSs are more common to avoid deployment on
+resource-constrained hosts with non-identical firmware and software.
+### Evaluation
+The confusion matrix is commonly used for evaluating ML performances. If we have unbalanced classes, as it is often the case in intrusion detection, it can be misleading.
+Relevant metrics:
+$$Accuracy = \frac{TP + TN}{TP + TN + FP + FN}$$
+$$
+Precision = \frac{TP}{TP + FP}
+$$
+$$
+Recall = \frac{TP}{TP + FN}
+$$
+$$
+F1_{score} = \frac{TP}{TP + {1 \over 2}(FP+FN)}
+$$
+## ID approaches
+
+### Physical Layer Detection
+Identifying anomalies in the medium of communication (e.g., electrical signals or radio frequencies). The features and methods are highly dependent on the specific physical layer. 
+
+A common approach is to find an element through which is possible to fingerprint a device, to detect whether it is sending the expected data. 
+
+Note that it cannot recognize whether the “correct” device is sending malicious data.  
+### Packet Flow-Based Detection
+Attempts to recognize patterns and behaviors focusing on the sequence periodicity, and flow of packets.
+
+Suitable for OT/CPS networks where traffic is predictable (fixed frequency or event-driven).
+Less computationally intensive since it doesn’t analyze payload content.
+
+Mostly effective at detecting disruptions like **DoS (Denial of Service) attacks**. May miss sophisticated attacks that don’t alter flow characteristics significantly.
+### Protocol Compliance Detection
+Detects attacks exploiting protocol weaknesses, crafting malformed packets, or engaging in anomalous behaviors that deviate from protocol standards.
+
+Particularly useful in OT networks vulnerable to DoS attacks via malformed packets. Helps catch anomalies at the communication protocol level like forceful errors or malformations. 
+### Payload-Based Detection
+Inspects the contents of network packets (the payload) to identify malicious activity or unauthorized behavior.
+
+Particularly relevant in OT/ CPS networks when the packet carries sensor data. It allows to
+recognize anomalous or abrupt changes in the sensor values, or inconsistencies between
+various sensors. Forces attackers to maintain realistic system behavior, making attacks harder.
+
+May require accurate models of system behavior, which might not always be available.

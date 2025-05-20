@@ -31,8 +31,8 @@ The goal is to learn a better (more efficient) representation of a set of unknow
 The goal is to learn the optimal policy, in order to automatize the decision making process. 
 ## Dichotomies in ML
 - **Parametric** vs. **Non parametric**
-	- Parametric: fixed and finite number of parameters.
-	- Non parametric: the number of parameters depends on the training set (it requires storing the entire dataset and perform queries on it to performs prediction so it might be memory demanding, but it is faster since it does not require training).
+	- Parametric: fixed and finite number of parameters. They require training to estimate those parameters. The complexity of the model is fixed regardless of the dataset size. 
+	- Non parametric: the number of parameters depends on the training set (it requires storing the entire dataset and perform queries on it to performs prediction so it might be memory demanding, but it is faster since it does not require training). The complexity of the model grows with the number of training samples.
 - Frequentist vs. Bayesian
 	- Frequentist: use probabilities to model the sampling process.
 	- Bayesian: use provability to model uncertainty about estimate.
@@ -835,7 +835,7 @@ Disadvantages:
 - It fails when data consists of multiple clusters. 
 - The direction of greatest variance may not be the most informative.
 - Computationally expensive in high dimensions. 
-- Assumes linearity since it computes linear combinations of features. If data lies on a nonlinear manifold, [[Machine Learning#Kernel PCA|Kernel PCA]] can help.
+- Assumes linearity since it computes linear combinations of features. If data lies on a nonlinear manifold kernel PCA can help.
 
 > [!TIP] Core property of PCA
 > Once we project our mean-normalized data onto the principal components (obtaining scores $t_i$), we can reconstruct the original data using the loadings matrix $W$  (i.e. the eigenvectors of the covariance matrix).
@@ -1041,10 +1041,11 @@ Kernel methods are memory-based (e.g. K-NN): they need to keep the training data
 They are fast to train, but slow to predict: the bottleneck is the number of samples, so we can increase the number of features without "paying" computationally. 
 They require a metric to be defined. 
 
+In the case the model we are considering is not performing well even by tuning properly the parameters (e.g. cross-validation), we have two opposite options: simplify the model or increase its complexity. In the second case, one might see the problem in a more complex space: the kernel space.
+
 Kernels makes linear models work in non-linear settings:
 - by **mapping** data to higher dimensions where it exhibits linear patterns. They change the feature space representation. Mapping can be expensive but kernels give them for (almost) free.
 - by applying the linear model to the new input space.
-
 ## Feature Mapping
 Given a feature space $x = \{x_1, .., x_M\}$, consider the following mapping: 
 $$
@@ -1073,10 +1074,10 @@ Note that the kernel function is a scalar value while $x$ is an M-dimensional ve
 
 The **kernel trick** is an inner product that allows extending well-known algorithms. 
 Idea: if an input vector $x$ appears only in the form of scalar products then we can replace scalar products with some other choice of kernel. 
-## Dual Representation
+## Dual Representation - kernelized Ridge regression
 Many linear models for regression and classification can be reformulated in terms of dual representation in which the kernel function arises naturally. This plays an important role in [[Machine Learning#Support Vector Machines (SVM)|SMV]].
 
-Consider a linear regression model: the parameters are obtained by minimizing the regularized sum-of-squares error function:  $$ L_w = {1 \over 2} \sum_{n=1}^N (w^T \phi(x_n) -t_n)^2 + {\lambda \over 2} w^T w $$ then, to get the dual formulation, we set the gradient of $L_w$ with respect to $w$ equal to zero: 
+Consider a linear regression model, in particular **Ridge regression**, the parameters are obtained by minimizing the regularized sum-of-squares error function:  $$ L_w = {1 \over 2} \sum_{n=1}^N (w^T \phi(x_n) -t_n)^2 + {\lambda \over 2} w^T w $$then, to get the dual formulation, we set the gradient of $L_w$ with respect to $w$ equal to zero: 
 $$
 w = -{1 \over \lambda} \sum_{n=1}^N (w^T \phi(x_n) - t_n) \phi(x_n) = \sum_{n=1}^N a_n \phi(x_n) = \Phi^T a
 $$
@@ -1131,6 +1132,24 @@ In parametric formulation, the solution is $w_{ML} = (\Phi^T \Phi)^{-1} \Phi^T t
 
 The main advantage of the dual formulation is that we can work with the kernel function $k(x, x')$ and therefore avoid working with a feature vector and problems associated with high or infinite dimensionality of x. 
 Moreover, the kernel functions can be defined not only over simply vectors of real numbers, but also **over objects** (e.g. graphs, sets, string, text documents) as we just have to define a metric for similarity.
+
+Let $D = \{ (x_i, y_i) \}_{i=1}$​ be the training dataset and $x^*$ be a test point.
+We define:
+- $K_{X, X}$ as the **Gram matrix** of the training points (size $N \times N$).
+- $K_{x^*, X}$​ as the vector of kernel evaluations between the test point and each training point (size $1 \times N$).
+- $K_{X, x^*} = K_{x^*, X}^T$​ as the transposed version (size $N \times 1$).
+- $K_{x^*, x^*}$​ as the kernel evaluation at the test point (a scalar).
+#### Posterior Mean
+$$\mu^* (x^*) = K_{x^*, X} \cdot (K_{X, X} + \sigma_n^2 I)^{-1} \cdot y$$
+where:
+- $\sigma_n^2$​ is the noise variance in the observations (which is added to the kernel matrix to stabilize the inversion). 
+- $y$ is the vector of training outputs (size $N \times 1$).
+It depends on the output sample.
+#### Posterior Variance
+$$\sigma^{*2}(x^*) = K_{x^*, x^*} - K_{x^*, X} \cdot (K_{X, X} + \sigma_n^2 I)^{-1} \cdot K_{X, x^*}$$
+It does not depends on the output sample. 
+
+In both cases, the overall complexity is **dominated by the cubic complexity** of the matrix inversion step.
 ## Constructing Kernels
 To exploit kernel substitution, we need valid kernel functions.
 
@@ -1144,7 +1163,7 @@ The second method is a direct construction: the function we choose has to corres
 Without having to construct the function $\phi(x)$ explicitly, a **necessary and sufficient condition** for a function to be a kernel is that the **Gram matrix** $K$, whose elements are given by $k(x_n, x_m)$ is **positive semi-definite** for all possible choice of the set $\{x_n\}$.
 
 > [!THEOREM] Mercer's theorem
-> Any continuous, symmetric, positive semi-definite kernel function $k(x, x')$ can be expressed as a dot product in a high-dimensional space.
+> **Any** continuous, symmetric, positive semi-definite kernel function $k(x, x')$ can be expressed as a **dot product** in a high-dimensional space.
 
 New kernels can be constructed from simpler kernels as building blocks.
 Given valid kernels $k_1(x, x')$ and $k_2(x, x')$, the following new kernels will be valid:
@@ -1162,7 +1181,8 @@ $$
 10) \ k(x, x') &=  k_a(x_a, x_a') \cdot k_b(x_b, x_b')\\
 \end{align}
 $$
-A commonly used kernel is:
+### Gaussian Kernel - Radial Basis Function (RBF)
+A commonly used kernel is the Gaussian  or Radial Basis Function (RBF) kernel:
 $$
 k(x, x') = \exp({-||x-x'||^2 \over 2 \sigma^2})
 $$
@@ -1176,6 +1196,235 @@ Kernels can be extended to inputs that are symbolic, rather than simply vectors 
 Given a generative model $p(x)$ we define a kernel by $k(x, x') = p(x)p(x')$. 
 It is valid since it is an inner product in the one-dimensional feature space defined by the mapping $p(x)$. 
 The idea is that two inputs $x$ and $x'$ are similar if they have high probabilities of being generated in a certain context. 
-### Kernel PCA
 
+Radial basis functions are function that depend only on the radial distance (typically Euclidean) of a point $x$ from a center $\mu_i$: 
+$$
+\phi_j (x) = h(\|x-\mu_j|_2)
+$$
+RBF can be used for exact interpolation: 
+$$
+f(x) = \sum_{n=1}^N w_ h(\|x-x_n\|_2)
+$$
+However, since the data in ML are generally noisy, exact interpolation is not very useful. Exact interpolation can lead to overfitting, where the model tries to perfectly fit noisy training data, reducing generalization to new data points.
+
+To mitigate issues related to regions of low basis function activation, we can use normalized radial basis functions. 
+Normalization is sometimes used in practice as it avoids having regions of input space where all basis functions takes small values, which would necessarily lead to predictions in such regions that are either small or controlled purely bu the bias parameter. 
+### Automatic Relevance Determination (ARD) kernel
+In many datasets, some input features may be more relevant than others for making predictions.
+The ARD kernel is a variation of the standard RBF kernel that assigns a separate length scale $\sigma_d$​ to each input dimension $d$. This allows the model to learn the relative importance of each feature, effectively performing feature selection. It is defined as:
+$$
+k(x, x') = \sigma^2 exp(-\sum_d \frac{\|x_d-x_d'\|^2}{2l_d^2})
+$$
+where $\sigma^2$ is the signal variance, $l_d$ is the length-scale for dimension $d$ (learned from data):
+- a small $l_d$ means that the output changes rapidly with $x_d$, so the dimension is important. 
+- a large $l_d$ means that the output is insensitive to $x_d$, so the dimension is irrelevant. 
+### Gaussian Processes 
+A Gaussian process is a **probability distribution over functions** $y(x)$ such that the values of the function at any set of points $x_1, .., x_N$ jointly have a Gaussian distribution. 
+A GP is completely specified by (second-order statistics):
+- A **mean** function $\mu(x)$.
+- A **covariance** function (kernel) $K(x_i, x_j)$.
+#### Prior distribution
+Usually we do not have any prior information about the mean of $y(x)$, so we take it to be zero while the covariance is given by the kernel function:
+$$
+Cov[y(x_i), y(x_j)|x_i, x_j] = \mathcal{E}[y(x_i)y(x_j)|x_i, x_j] = K(x_i, x_j)
+$$
+#### Posterior distribution
+To compute the posterior **mean**, the following formula is used:
+$$
+\mu(x) = k(x, x_t)(K_t + \sigma^2I)^{-1} y_t
+$$
+where $x_t$ is the test point, $K_t$ is the covariance matrix of the training data, $\sigma^2$ is the noise variance and $I$ is the identity matrix. 
+
+To compute the posterior **variance** we use:
+$$
+s^2(x) = k(x, x) - k(x, x_t)^T(K_t + \sigma^2I)^{-1}k(x, x_t)
+$$
+
+With this formulation, GP are kernel methods that can be applied to solve regression problems. 
 # Support Vector Machines (SVM)
+It is one of the best method for classification. They can also be used for regression, ranking, feature selection, clustering and semi-supervised learning. 
+A SVM consist of:
+- **Support vectors**: a subset of training examples $x$ that are most influential in defining the decision boundary.
+- **Weights vector** ($a$): coefficients that represents the importance of each support vector in determining the decision boundary.
+- **Kernel function**: a similarity function $K(x, x')$ that implicitly maps data into a higher-dimensional space to make it linearly separable. 
+
+For a given input $x_q$, the SVM outputs a class prediction $t_i \in \{-1, 1\}$ based on the following decision function:
+$$f(x_q) = sign(\underbrace{\sum_{m \in \mathcal{S}} \alpha_m t_m k(x_q, x_m)}_{\text{linear combination}}+ b)$$
+where $\mathcal{S}$ is the set of indices of the support vectors and $b$ is the bias term.
+SVMs are often considered a more sophisticated extension of the [[Artificial Neural Networks & Deep Learning#The perceptron|perceptron]], leveraging the concept of margin maximization and kernel methods to handle complex, non-linear data.
+## From Perceptron to Kernel Methods
+The key idea is that the perceptron decision function can be reformulated in a way that resembles the weighted k-NN decision rule: 
+- Take the perceptron.
+- Replace the dot product with an arbitrary similarity function: it is still a dot product but in a transformed space.
+- As result, we have a more powerful learner that can handle complex, non-linear patterns while maintaining convex optimization, meaning there are no local minima, only a single global optimum.
+The perceptron decision function can be written as:
+$$
+f(x_q) = sign(\sum^M_{j=1} w_j \phi_j(x_q))
+$$
+where $w_j$ are the weights for each feature and $\phi_j(x_q)$ is the feature representation of the input $x_q$.
+However, the weights $w_j$​ can also be expressed as a linear combination of the training examples:
+$$
+w_j = \sum_{n=1}^N \alpha_n t_n \phi_j(x_n)
+$$
+Substituting this in the original function gives:
+$$
+\begin{align}
+	f(x_q) &= sign(\sum_{j=1}^M \sum_{n=1}^N \alpha_n t_n \phi_j(x_n) \phi_j(x_q)) \\ 
+	&= sign(\sum_{n=1}^N \alpha_n t_n \sum_{j=1}^M \phi_j(x_n) \phi_j(x_q)).
+\end{align}
+$$
+Notice that the inner sum is the dot product $\phi(x_q) \cdot \phi(x_n) = \sum_{j=1}^M \phi_j(x_q) \phi_j(x_n)$. Thus, the decision function can be written as:
+$$
+f(x_q) = sign(\sum_{n=1}^N \alpha_n t_n (\phi(x_q) \cdot \phi(x_n)))
+$$
+In conclusion:
+- The perceptron decision function can be expressed as a weighted sum over training samples, where the weights are given by $\alpha_n t_n$.​
+- The similarity function is the dot product $\phi(x_q) \cdot \phi(x_n)$.
+- Thus, the perceptron can be viewed as an **instance-based learner** where the similarity function is the dot product in the feature space.
+This formulation directly connects the perceptron to kernel methods and provides the foundation for the SVM.
+## Learning SVMs
+The goal is to **maximize the margin**, which is the distance between the decision boundary (hyperplane) and the closest data points from either class, the support vectors: 
+$$
+\min_n t_n (w^T \phi(x_n) + b)
+$$
+Maximizing this margin helps improve generalization by ensuring the classifier has a **robust separation between classes**, which leads to **better performance on unseen data**.
+It is a weight optimization problem. 
+
+![](./assets/SVM_2.png)
+### Primal problem
+To maximize the margin, we have to find the optimal $w^*$ and $b^*$ by solving:
+$$
+w^* = \arg \max_{w, b} (\frac{1}{\|w\|_2} \min_n (t_n (w^T \phi(x_n) +b)))
+$$
+Since the direct solution is complex, we need to consider an equivalent problem which is easier to be solved: we fix the margin to 1 and minimize weights.
+$$
+\begin{align}
+& \text{Minimize} & \frac{1}{2} \|w\|_2^2\\
+& \text{Subject to} & t_n(w^T \phi(x_n) + b) \ge 1 \\ & &\text{forall } n\\
+\end{align}h_i(w) = 0
+$$
+- The objective $\frac{1}{2} \|w\|_2^2$​ is chosen to make the optimization problem **convex and differentiable** (a quadratic programming problem). 
+- The margin constraint ensures that **all training points are correctly classified with a margin of at least 1**.
+It as a constrained optimization problem (in this general form):
+$$
+\begin{align}
+& \text{Minimize} & f(w)\\
+& \text{Subject to} & h_i(w) = 0, \ \forall i\\
+\end{align}
+$$
+if $f$ and $h_i$ are linear we have linear programming, but in this case we have a quadratic problem: it possible to apply optimization techniques such as **Lagrangian multipliers** or and **KKT conditions** (Karush-Kuhn-Tucker).
+
+To solve the constrained optimization problem, we construct the Lagrangian function: 
+$$
+L(w, \lambda) = f(w) + \sum_i \lambda_i h_i (w)
+$$
+where $\lambda_i$ are the Lagrangian multipliers (one for each constraint, $\ge 0$ to ensure that the constraint are respected). 
+We solve $\nabla L (w^*, \lambda^*) = 0$, to obtain the optimal solution. 
+
+- The solution $w^*$ lies in the span of the support vectors.
+- The optimal weight vector is expressed as a **linear combination of the support vectors**, each weighted by $\lambda_n t_n$​.
+#### Inequality constraints
+When dealing with inequality constraints, the optimization problem can be formulated as: 
+$$
+\begin{align}
+& \text{Minimize} & f(w)\\
+& \text{Subject to} & g_i(w) \le 0, \  \forall i\\
+& & h_i(w) =0, \ \forall i
+\end{align}
+$$
+We introduce Lagrangian multipliers $\alpha_i \ge 0$ for the inequality constraints and $\lambda_i$ for the equality constraints. 
+The Lagrangian function becomes:
+$$
+L(w, \alpha, \lambda) = f(w) + \sum_i \alpha_i g_i(w) + \sum_i \lambda_i h_i(w)
+$$
+The inequality constraints in SVMs are given by:
+$$
+t_n (w^T \phi(x_n) + b) - 1 \geq 0
+$$
+- If $\alpha_i > 0$, the corresponding constraint is **active**, meaning the sample is a **support vector**.
+- If $\alpha_i = 0$, the sample is **not a support vector** and does not influence the final decision boundary.
+
+The **KKT conditions** provide the **necessary conditions for optimality in constrained optimization problems with inequality constraints**:
+$$
+\begin{align}
+& \nabla L(w^*, \alpha^*, \lambda^*) = 0 & \text{sationarity} \\
+& h_i(w^*) = 0 \\
+& g_i(w^*) \le 0 &\text {primal feasibility} \\
+& \alpha_i^* \ge 0 & \text{dual feasibility} \\
+& \alpha_i^∗​ g_i​(w^∗) = 0 & \text{complementary slackness}
+\end{align}
+$$
+According to the complementary slackness, either the constraint $g_i(w^*) = 0$ is active or its multiplier $\alpha_i^*$ is zero.
+### Dual Problem
+In optimization, we can often approach the same problem from two perspectives:
+- **Primal Problem:** focuses on the **feature space** and the weight vector $w$.
+- **Dual Problem:** re-frames the optimization in terms of the Lagrange multipliers $\alpha$, operating in the **instance space**.
+The dual problem can be derived by applying the Lagrangian formulation and eliminating $w$ through the KKT conditions:
+$$
+\begin{align}
+& \text{Minimize} & \sum_{n=1}^N \alpha_n - \frac{1}{2} \sum_{n=1}^N \sum^N_{m=1} \alpha_n \alpha_m t_n t_m k(x_n, x_m)\\
+& \text{Subject to} & 0 \le \alpha_n,\ \forall n\\
+& & \sum_{n=1}^N \alpha_n t_n = 0
+\end{align}
+$$
+- The dual problem is now a **quadratic programming problem** involving only the Lagrange multipliers $\alpha_n$.
+- The kernel function $k(x_n, x_m)$ allows for **non-linear decision boundaries** without explicitly transforming the feature space.    
+- Most $\alpha_n$​ values will be zero. The non-zero $\alpha_n$ correspond to the **support vectors**, the points that define the margin.
+
+When solving the SVM optimization problem, standard quadratic programming solvers can become impractical due to the large number of constraints (memory and time complexity grow **quadratically with the number of samples**). 
+Specialized algorithm are preferred to handle large dataset efficiently (e.g. Sequential Minimal Optimization).
+## SVMs prediction
+After training the SVM and obtaining the optimal $\alpha_n$ and $b$, we can classify a new point $x$ using the following decision function:
+$$
+y(x) = sign(\sum^N_{n=1} \alpha_n t_n k(x, x_n) + b)
+$$
+The bias term can be computed as follow: 
+$$
+b = \frac{1}{N_{\mathcal{S}}} \sum_{n \in \mathcal{S}} (t_n - \sum_{m \in \mathcal{S}} \alpha_m t_m k(x_n, x_m))
+$$
+where $\mathcal{S}$ is the set of support vectors and $N_{\mathcal{S}}$ is the number of support vectors.
+Notice that $N_{\mathcal{S}}$ is usually much smaller than $N$, leading to a sparse representation of the model. 
+## Curse of dimensionality
+As the number of dimensions (features) increases, several issues arises in SVMs:
+- **Increase in support vectors**: as in higher dimensions data points tends to be more sparse, and more support vectors are required to define the separating hyperplane.
+- **Scalability** issues: as the **computational cost** of evaluating the kernel function grows with the number of support vectors. Moreover, **memory requirement** increases as each support vector needs to be stored and processes during prediction. 
+- Impact on **generalization**: with more support vectors the SVMs may overfit.
+### Bounds: SVMs generalization capacity
+#### Margin bound
+The **bound on the VC dimension decreases as the margin increases**: a larger margin reduces the model's capacity to overfit, effectively lowering the VC dimension. 
+However, the margin bound is generally considered **loose**, meaning it may not provide a tight estimate of the actual generalization error. 
+#### Leave-One-Out Bound (LOO Bound)
+An upper bound on the leave-one-out error can be easily computed using the number of support vectors:
+$$
+L_h \le \frac{E[N_s]}{N}
+$$
+where $N_s$ is the number of support vectors and $N$ is the total number of training samples. 
+This bound does not need to retrain the SVM multiple times. It provides a direct measure of generalization based on the number of support vectors. 
+## Handling noisy data: soft-margin SVM
+Real-world data is often noisy, making it challenging to find a perfectly separable hyperplane. 
+To address this, **soft-margin SVMs** introduce slack variables $\xi_i \ge 0$ which allows some data points to violate the margin constraint, account for missclassification or noisy data. 
+
+The objective function now includes a **penalty term** for these violations, controlling the trade-off between maximizing the margin and minimizing classification errors.
+$$
+\begin{align}
+& \text{Minimize} & \|w\|_2^2 + C \sum_i \xi_i \\
+& \text{Subject to} & t_i(w^Tx_i + b) \ge 1 - \xi_i, \  \forall i\\
+& & \xi_i \ge 0, \ \forall i
+\end{align}
+$$
+where $C$ is a regularization parameter (hyperparameter), controlling the **trade-off between margin width and misclassification tolerance**:
+- a larger $C$ results in a stricter margin, prioritizing classification accuracy over margin size. 
+- a smaller $C$ results in a wider margin, allowing more misclassifications to prevent overfitting.
+The value of $C$ is typically chosen through cross-validation, balancing the bias-variance trade-off.
+
+Now, the dual formulation accounts for the $C$ term:
+$$
+\begin{align}
+& \text{Minimize} & \sum_{n=1}^N \alpha_n - \frac{1}{2} \sum_{n=1}^N \sum^N_{m=1} \alpha_n \alpha_m t_n t_m k(x_n, x_m)\\
+& \text{Subject to} & 0 \le \alpha_n \le C,\ \forall n\\
+& & \sum_{n=1}^N \alpha_n t_n = 0
+\end{align}
+$$
+where support vectors are points associated to an $\alpha_n \ge 0$:
+- if $\alpha_n < C$ the points lies on the margin.
+- if $\alpha_n = C$ the point lies inside the margin, and it can be either correctly classifies ($\xi_i \le 1$) or misclassified ($\xi_i > 1$).

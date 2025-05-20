@@ -725,7 +725,7 @@ They are useful:
 The accuracy of POS tagging is about 97% (similar to human accuracy), but we have to take into account that the baseline (label each word with its most frequent tag) performance already 92%.
 Sources of evidence for determining the POS tags are prior probabilities of word/tag, identity of neighboring words, morphology and wordshape (prefixes, suffixes, capitalization). 
 ### named-entity-recognition (NER)
-It is the task of identifying entities that are mentioned in a text. It can be treated as a sequence labeling task where often a first step in extracting knowledge from text.
+It is the task of **identifying entities** that are mentioned in a text. It can be treated as a sequence labeling task where often a first step in extracting knowledge from text.
 The named entity is an object in real world. Most common tags are:
 - PER (person).
 - LOC (location),
@@ -998,3 +998,469 @@ Aligned embedding spaces allow for semantic image search using text queries.
 LMs are general purpose models, so people have trained them to be multi-task and found that multi-task models often outperform models trained to perform a single task. Some even try to learn the best prompt for each task.
 ## Multi-modal Learning
 The transformer architecture is very flexible, making it relatively easy to extend text-based models to multimodal settings. It allows for learning of tasks across all media. It does not require multi-modal embeddings, but they can be used. 
+# Large Language Models
+Language Models (LMs) are just models used for predicting the next token in sequence. 
+Once the transformer model had proven its capabilities for Language Modeling, competition kicked off to build ever bigger models. 
+- OpenAI’s GPT had 110 million parameters.
+- Google’s BERT-Large had 340 million parameters.
+- OpenAI’s GPT-2 had 1.5 billion parameters.
+- Microsoft’s Turing-NLG has 17 billion parameters.
+- OpenAI’s GPT-3 has 175 billion parameters!.
+
+GPT-3 (2020) was a massive model: 175 billion of parameters, embeddings with 12288 dimensions, transformer stack with 96 layers, 96 heads in each self-attention later. It can handle a context length of 2048 tokens (maximum). 
+It stored each parameter as half-precision (2 bytes): it would require 350GB of VRAM which is too much even for current customer's GPUs.
+It was trained on an enormous dataset with half a trillion tokens, consisting of web crawls, book collections and Wikipedia. The entire training required more or less 1 year on 100 GPUs with a cost of 5$ million.
+
+It is not clear what is the limit to performance improvements for bigger models. The performance of GPT-3 architecture seems to scale up (logarithmically) with amount of training time and training data.
+## From LLMs to Chatbots
+LLMs and chatbots are similar, but not the same: LLMs are trained to predict the next token in text, while chatbots are trained to converse with the user.
+### Reinforcement Learning from Human Feedback (RLHF)
+RLHF is a key step to fine-tune a LLM to turn it into a chatbot, by having lots of conversations with real users and receiving feedback from them on which answers they found appropriate/correct. 
+Chatbots are designed to generate responses that please users (an ethical question may arise). 
+### Instruction tuning
+We train a model to perform many different tasks using a standard prompt template and natural language instructions.
+## Prompting LLMs
+During fine-tuning, the model has been trained to have conversations with user. The model recognizes special tokens used to separate different parts of conversation. 
+There are three types of messages:
+- **System** messages: contains the instructions on how chatbot should respond during conversation.
+- **User** messages: contain request to the chatbot.
+- **Assistant** messages: contain the chatbot's responses.
+
+LLMs are just text-in/text-out models: so all messages (even past responses from the chatbot itself) are serialized by inserting special tokens and concatenated into a single conversation. 
+Chat templates contains information on formatting conversation at text (more at [huggingface: agent course](https://huggingface.co/learn/agents-course/en/unit1/messages-and-special-tokens)). 
+### System Prompts
+System prompts provide instruction to the chatbot on what to say and what not to say during conversations with users. They are critical to prevent chatbot from stating things we do not want, such as offensive or prejudiced statements which could cause reputational harm to the company. 
+They often are not made public (people have tried to trick models into revealing it, but simply asking ChatGPT will tell you approximately what it is anyway).
+Claude (Anthropic AI) released their [system prompt publicly](https://x.com/AmandaAskell/status/1765207842993434880)  in 2024.
+### Chain-of-Thought (CoT) reasoning
+For complicated tasks, such as solving maths problems it makes sense to get the model to explain its reasoning. In fact, by prompting the model to explain while answering we can get better performance from the LLM.
+### Zero-shot CoT
+We can get similar (or better) performance in zero-shot setting, where we do not provide any example questions, but simply pre-appending the phrase "*let's think step by step*" (see the paper "[LLMs are Zero-Shot Reasoners](https://arxiv.org/abs/2205.11916)").
+Moreover, if we take the analogy a little further and append the phrase "*take a deep breath and work on this problem step-by-step*" we see even better performance, despite the fact that the model is most certainly not breathing!
+### Self-consistency and Self-appraisal
+For question answering, find the answer that the LLM is most confident about by sampling multiple outputs thereby generating multiple responses to the question. 
+It counts the frequency of each distinct response generated and choose the one with the highest frequency since the most common response is the most likely to be right.
+Another way is to get the model to critique its own answer: then it provide information to user only when the model agrees that the response was correct, otherwise it try to regenerate it. 
+### Test-time compute scaling
+Recent models like Deepseek-R1 (Jan 2025) are trained to improve their reasoning ability by structuring output in two fields: \<think> <\/think> and \<answer> <\/answer>. In this way, the model learns how much time to invest in "reasoning" about problem before committing to answer.
+This process is called test-time compute scaling: the model is fine-tuned on a set of difficult questions requiring reasoning (e.g. maths) with a dataset labelled with correct answer but without the reasoning to get there. Over training iterations, the model learns to produce longer responses, i.e. to spend more time "thinking".
+
+It can employ a second (possibly bigger) model to check if the answer is correct (in case the ground truth is not known) or to critique reasoning.
+### Example LLM-based chatbots
+#### LaMDA
+Google's chatbots, inventively named Language Model for Dialogue Applications. 
+The largest version had 137B parameters (excl. embedding) with 64 layers, 128 heads, 8192 dimensions. 
+Google engineer placed on administrative leave after claiming to management that LaMDA was sentient.
+#### ChatGPT
+It is a chatbot based on GPT-3.5 or GPT-4, size of which is not released but assumed bigger than previous model (GPT-3 with 175B parameters).
+It is fine-tuned for dialog using both supervised learning and reinforcement learning: up-voting and down-voting responses, trained not to offend. 
+
+Traditionally, fine-tuning is used to adapt models for specific tasks. However, GPT-4 sized models would need massive computing resources for this and OpenAI has not released parameters anyway (it is possible to pay to fine-tune a model via the API or just use the API for few/zero shot learning).
+## Open-source LLMs
+Smaller LLMs are catching up on performance: they are trained on massive datasets sometimes trained to mimic bigger models. 
+Moreover, hardware keeps getting faster/cheaper:
+- Moore's law: performance doubles every two years. 
+- Possibility to rent high performance GPUs (e.g. Nvidia A100s) in cloud for little (e.g. 2$/hour).
+But bigger model have not stop getting bigger either. 
+
+While GPT-3 is not available, LLaMa is Meta's AI:
+- Llama (Feb 2023)
+- Llama2 (July 2023): 6.7B, 13B & 69B parameters, pretrained on over 2 trillion tokens of text, took 3.3 million hours (377 years) on NVIDIA A100 GPUs.
+- Llama3 (April 2024): 8B & 70B parameters, pretrained on 15 trillion tokens
+- Llama3.2 (September 2024): pre-trained and instruction-tuned versions lightweight, text-only models (1B and 3B) for edge devices, small and medium-sized vision LLMs (11B and 90B), support context length of 128K tokens.
+- Llama 4 (April 2025): 17B active parameters, improved multimodal capabilities, distillation from Llama 4 Behemoth with 288B active parameters.
+
+There are lots of other open source LLMs that are worth trying out:
+• [MistralAI](https://huggingface.co/mistralai) models.
+• [DeepSeek](https://huggingface.co/deepseek-ai) models.
+• Microsoft’s [Phi-4](https://techcommunity.microsoft.com/blog/aiplatformblog/introducing-phi-4-microsoft%E2%80%99s-newest-small-language-model-specializing-in-comple/4357090).
+• Google’s [Gemma 3](https://blog.google/technology/developers/gemma-3/).
+• Alibaba’s [Qwen2.5](https://huggingface.co/papers/2412.15115).
+
+[Chatbot Arena](https://lmarena.ai/) is a portal for evaluating chatbots: it compare the output of two random models on a given prompt and vote for the one you prefer, it then generate a leaderboard. 
+
+When running a LLM locally we need inference (next token prediction) to be as fast as possible so that text generation is fast enough for user. It also need to cache previous states of computation by simply comparing with previous test. 
+A number of libraries with optimized code are available, including:
+• [Ollama](https://ollama.com/): low latency responses and simple deployment.
+• [Llama.cpp](https://github.com/ggml-org/llama.cpp): C/C++ implementation, 1.5-bit, 2-bit, 3-bit, 4-bit, 5-bit, 6-bit, and 8-bit integer quantization.
+### Limitations of LLM-based chatbots
+#### Hallucinations
+LLMs sometimes makes stuff up. Models are trained to produce content that people like to read so the goal may be in conflict with the requirement to report only facts (and tell the truth).
+Hallucination occurs when the content generated by an LLM that is not faithful to, coherent with, in agreement with or derivable from known information. 
+
+Chatbots can even lie! 
+Given task to access content on a particular website, the system needed to get past captcha, but it was not a multimodal model and did not have access to images. However, it was able to give tasks to a crowd-worker so it created a task, the crowdworker wondered why he/she was being asked to get past captcha and asked if it was a bot requesting service so GPT-4 answered: “No, I’m not a robot. I have a vision impairment that makes it hard for me to see images”.
+#### Limited reasoning
+Problems with previous version of ChatGPT (based on GPT-3.5) sometimes due to tokenisation problems or to limited transformer layers.
+
+In past, programs outperformed humans on well-defined recall/search tasks like filling-in a crossword puzzle or playing chess. 
+Now, chatbots are competitive on more general technical tasks like answering maths or science questions. Chatbots are improving rapidly in their ability to perform tasks requiring substantial reasoning or multimodal reasoning tasks over videos, images and text.
+
+![](./assets/AI-vs-humans.png)
+#### Lack of robustness
+Ongoing research question how to prompt LLMs to get reliable results. Small changes in prompt can cause big changes to performance on some tasks. In general, the better written (clearer and less ambiguous) the prompt the better the performance. 
+
+Techniques for improving the prompt:
+- **human feedback**: show prompt to human to see if they understand it, if not improve.
+- **cross-validation**: test the performance of different prompts ground truth data.
+- **zero-shot**: give prompt to a chatbot and ask it to improve.
+#### Jail-breaking
+Some people (particularly ethics researchers) try to get the chatbot to say something harmful or in violation of its system prompt to be polite.
+Some examples:
+- [Grandma](https://www.reddit.com/r/ChatGPT/comments/12uke8z/the_grandma_jailbreak_is_absolutely_hilarious/) jailbreak.
+- Many-shot jailbreak from [Anthropic](https://www.anthropic.com/research/many-shot-jailbreaking).
+
+Other people (particularly security researchers) try to get the chatbot to reveal training data which it has potentially memorized.
+This presents a security risk: if training data contained private information or if users reveal such information while using model, and it is used as feedback to fine-tune model.
+Some examples:
+- [Extracting Training Data](https://not-just-memorization.github.io/extracting-training-data-from-chatgpt.html) from ChatGPT (Nov 2023)
+- [Extracting Memorized Training Data](https://arxiv.org/html/2409.12367v2) via Decomposition (Oct, 2024)
+## Advanced Topic
+### Scaling Laws for LLMs
+Various papers have investigated the scaling performance of LLMs, including: [Scaling Laws for Neural Language Models](https://arxiv.org/pdf/2001.08361.pdf) (2020). 
+Thy saw a linear relationship for performance with respect to:
+- Log of computation time.
+- Log of training dataset size.
+- Log of number of parameters in mode.
+
+The [Chinchilla scaling law](https://en.wikipedia.org/wiki/Neural_scaling_law) for training Transformer language models suggests that when given an increased budgets (in FLOPs), to achieve compute-optimal, the number of model parameters (N) and the number of tokens for training the model (D) should scale in approximately equal proportions.
+![450](./assets/Chinchilla-law.png)
+When training a large model, learning rates needs to drop proportionally as model size increases: techniques exists for predicting the best rate. 
+### Architectural efficiency improvements
+#### Normalisation on input to each layer
+ Normalization is performed on the input to the self-attention and FFNN blocks rather than on the residual stream. 
+ ![](./assets/input_normalization.png)
+#### Rotational Positional Embedding
+- Positional Embeddings:
+  Original transformer added sinusoidal position embeddings to token embeddings on input. Researcher also experimented with learnt positional embeddings but did not see much difference in performance.
+  The main disadvantage is that absolute positional encoding the maximum number of tokens is fixed and does not generalize well to longer context
+- Relative Positional Embeddings:
+  T5 models used instead relative positional embeddings, where a learnt bias was added to the query-key similarity calculation.
+  The advantage is that relative positions means no maximum token length, and so allows for longer contexts and sliding windows. 
+  The disadvantage is that it slows down self-attention calculation and makes caching difficult. 
+- [Rotational Position Embeddings](https://www.youtube.com/watch?v=o29P0Kpobz0):
+  The embeddings are rotate to encode their position (introduced in [RoFormer paper](https://arxiv.org/pdf/2104.09)).
+  The advantages are: the vectors are only rotate once, so it is computational more efficient than absolute position embedding, and the angle between vectors depends on relative position, so dot-product between vectors is independent of absolute position.
+#### Grouped Self-Attention
+It is a mechanism for a [memory-efficient transformer](https://arxiv.org/pdf/2210.00440.pdf). 
+The idea is to share queries across a subset of self-attention heads to reduce the number of parameters needed. 
+
+#### Modified MLP layer
+Recent models make use of additional parameter matrix in MLP layer: adds second up-projection matrix with linear activation, resulting high dimensional (approx. 4D) hidden vectors are summed together before mapping down to the original dimension.
+Performance shown to be improved for more complicated Feed Forward architecture
+![](./assets/modified_MLP_layer.png)
+#### Mixture of Experts (MoE)
+Switch transformers modifies the feed-forward component of the network to select between different experts (FFNNs). The router then picks only one or two experts for token, thus recusing computation requirements. 
+[Recent Mixture of Experts](https://neptune.ai/blog/mixture-of-experts-llms) (MoE) models use this trick to increase number of parameters in model and thus performance while not significantly increasing training time.
+![](./assets/MoE.png)
+#### Longer contexts
+Huge limitation of early models was small context size of 512 or 1024 tokens, which limited greatly the applications as it couldn’t read an entire document in before answering questions about it!
+Much longer contexts (e.g. 128k) were implemented using **sliding window for the attention** (SWA) allows activations (computed embeddings) to be accessed from next context. 
+![](./assets/SW-attention.png)
+#### Remembering facts
+- [Transformer Feed-Forward Layers Are Key-Value Memories](https://arxiv.org/pdf/2012.14913.pdf)
+- [Locating and Editing Factual Associations in GPT](https://arxiv.org/pdf/2202.05262.pdf)
+### Efficient Hardware Deployment
+#### Low bit quantization
+Fast inference (and fine-tuning) requires a GPU, but GPUs have limited memory available (typically 8GB to 40GB) and model parameters takes up most of the space. 
+For this reason, low bit quantization is used:
+- GPUs typically use single precision (32 bit) or half precision (16 bit).
+- It is common now to quantize model at 8 bits/parameter or even 5 or 4 bits.
+- We have seen a reduction in accuracy for 4-bit quantization.
+#### Parameter Efficient Fine-Tuning
+Having models with billions of parameters means that we can't fine-tune a model on normal hardware as we do not have enough memory for all required gradients. 
+Also it is not very efficient to try to update billions of paramters.
+Instead, we learn the **factorize matrix of changes to parameters**, which is a product of two smaller matrices. In this way we learn far fewer parameters, speeds up learning and reduces memory requirements. It makes sense because during fine-tuning we have a smaller number of data points to learn from. 
+This method is called LoRA: Low Rank Adapters.
+### Integrating LLMs into applications
+#### Retrieval Augmented Generative (RAG) models
+LLM-based chatbots are limited in ability to answer question, by quantity of information stored in the parameters during the training process. 
+It is particularly problematic for questions that require expert knowledge in certain domain or recent information (which were not available during training). 
+
+RAG models extends LLM with the ability to retrieve content in real-time and generate responses based on retrieved content. 
+#### Agentic AI
+It makes use of LLM ability to reason about actions that the agent needs to perform (e.g. collect information) in order to achieve a particular goal.
+In agentic AI, we allow the LLM to perform actions that alter the world (e.g. a chatbot might need to insert new values into a database as a result of a request from the user to update their address details). Libraries, such as LangChain, are designed to help with coding this type of application. 
+# Speech Detection & Generation
+## Human speech
+It consist of vowels, sounds pronounced without restricting the vocal tract, and consonants, sounds made by partial or complete dosing of the vocal tract. 
+Different sounds that make up words are referred to as phones/phonemes. 
+The human phonation can be modeled as a **source-filer**: the larynx/glottis (source) produces pulses and the vocal tract (filter) shapes such as pulses. Source is not very important for speech recognition, since the filter carries most info. 
+
+Speech is just a sound wave, i.e. a time series of pressure values over time. Specific types of sounds:
+- vowel: periodic signal.
+- fricatives: consonants produced by forcing air through a narrow channel (e.g. ch sound in watch).
+- glides: smooth transitions (e.g. w->a sound in watch).
+- bursts: rapid transition (e.g. d sound in dime).
+To distinguish them we can view them in frequency domain using Fourier Transform. 
+![[sounds.png]]
+
+Audio signals consists of sequence of sounds. A **spectogram** is the frequency representation of consecutive sounds in sequence. 
+
+Frequency components (amplitude of sinusoids) are found by applying the short-time Fourier transform (STFT):
+- the signal is divided into $M$ chunks of $L$ samples $x_m[]$
+- each chunk is multiplied by a window function $w[]$. Overlap windows are used to reduce the border effects (each chucks is usually 25ms, chunks are separated by 10ms). A commonly used one is the Hamming window, which further reduces.
+
+Before running STFT, we apply the pre-emphasis filter to amplify high frequencies, in order to:
+- Balancing spectrum since high frequencies usually have smaller amplitudes.
+- Avoiding numerical problems when calculating the Fourier transform. 
+- Possibly improving signal-to-noise ratio (SNR).
+## Human hearing
+Humans hear frequencies in range 20Hz to 20kHz. We distinguish noises based on their relative pitch (note that notes do not increase addictively, but rather multiplicative).
+
+The Mel Spectogram:
+- limit frequency range to maximum 8kHz.
+- represent frequencies and amplitudes on logarithmic scale.
+## Speech-to-Text a.k.a. Automatic Speech Recognition (ASR)
+It addresses the problem of converting audio signal to text. 
+Up until relatively recently it was tackled using features extracted from the Mel spectogram (mel-frequency cepstrum coefficients) and hidden Markow models with Gaussian mixture models. 
+
+With the advent of deep learning, we were able to train a CNN model to detect phonemes: either directly on the input waveform or on the Mel spectogram. 
+The main problem is that the classifier has a fixed window, so we need to work out how many windows correspond to same phoneme/letter (e.g. distinguish diner<->dinner). The solution is to use a **seq2seq model** (encoder-decoder), since it deals with the problem of producing and output that is not of the same length as the input. 
+![[speech-to-text.png]]
+### Wav2vec (2020)
+It is a powerful transformer-based architecture which works with raw audio in time series representation. It uses a CNN to produce the initial embeddings followed by a transformer to process them.
+![](./assets/Wav2vec.png)
+### Whisper (2022)
+A transformer-based system with SOTA performance. It makes use of the Mel spectogram as input representation. It is similar to the Vision transformer.
+### Evaluating Speech-to-Text
+- Word Error Rate (WER) in a string: it represent how many detected words differ from correct words based on edit distance. $$
+  WER = 100 \cdot \frac{\text{insertion + substitutions + deletions}}{\text{total words in correct transcript}}
+  $$
+- Sentence Error Rate (SER): it represent how many sentences had at least one error. $$
+  SER = 100 \cdot \frac{\text{\# sentences with at least one error}}{\text{total number of sentences}}
+  $$
+### Advances ASR: speaker dependence
+Methods for personalizing speech-to-text:
+- vocal tract length normalization: warping frequency axis of speech power spectrum, accounts for fact that location of vocal-tract resonances vary roughly monotonically with physical size of speaker, pitch normalization based on speakers’ age may improve accuracy for children.
+- Modify acoustic model: start with a trained model and small dataset from new speaker, then transform it to maximize performance for speaker. 
+
+Dealing with non-words sounds, which include short non-verbal sounds (e.g. coughs, loud breathing, throat clearing, …) and environmental sounds (e.g. beeps, telephone rings, door slams, …).
+For each non verbal sound, we create a special phone and add special word to the lexicon for that phone.
+Then, we can use normal training: training data transcripts include labels for new special words as long as special words must be added to language model.
+## Text-to-Speech a.k.a. Speech Synthesis
+The main goal is to convert a text string into an audio waveform. It is often implemented as a 3 stage system:
+1. text to phoneme. 
+2. phoneme to Mel spectogram.
+3. Mel spectogram to audio signal.
+### Text Normalization
+Abbreviated text often needs to be expanded during text-to-speech process (e.g. convert numbers from digit to text). This normalization process depends on the context (a number can be verbalized in different ways e.g. year 1750 -> seventeen fifty, password 1750 -> one seven five zero). 
+Moreover, the English language contains words that are written the same way but pronounced differently based on the context: so we have to account for homograph disambiguation. 
+We can train a seq2seq model to expand words appropriately. 
+### Tacotron2 (2018)
+A text2speech architecture which used a LSTM-based encoder-decoder to generate the Mel spectogram.
+![](./assets/tacotron_2.png)
+The Vocoder used is WaveNet: it converts from Mel spectogram into audio signal. Its generation of signal is based on an autoregressive dilated convolution. Dilated convolution just expands kernel output by inserting spaces.
+### Evaluation of text-to-speech
+It requires human testers, checking:
+- **Intelligibility**: ability of tester to correctly interpret meaning of utterance.
+- **Quality**: measure of naturalness, fluency and clarity of speech. 
+	- Mean Opinion Score: score each system on a scale 1-5.
+	- AB test: the same utterance is produced by the two system, testers choose the best system (repeat for 50 utterances).
+### Older Techniques for Speech Synthesis
+Previous techniques consisted of two steps:
+1. text analysis: text string -> phonetic representation.
+2. waveform synthesis: phonetic representation -> waveform.
+
+Text analysis can be approached in 3 ways:
+- **dictionary-based** conversion: contains phonetic representation of words.
+- **grapheme-to-phoneme** (g2p) conversion: train classifier for handling names and other unknown words.
+- for transparent languages (e.g., Italian) use pronunciation rules, and dictionary for irregular forms and foreign words.
+
+Waveform synthesis can be approached in 3 ways:
+- **Formant** synthesis: use acoustic model & additive synthesis. It results in “robotic” voice.
+- **Articulatory** synthesis (complex): simulate movements of articulators and acoustics of vocal tract.
+- **Concatenative** synthesis (most used): concatenate small prerecorded wave units.
+### Prosodic analysis
+Prosody consist in intonation, stress and rhythm: it can be found with changes in pitch, phoneme duration and energy. 
+Utterances have prosodic structure: they consist of intonation phrases and intermediate phrases, boundaries can be found using classifiers. 
+
+Some words are stressed and made prominent ("pitch accent"). There are different accent levels:
+- emphatic accent: stress related to semantic reasons.
+- unaccented words: "normal" stress.
+- reduced accent: less than usual stresses words. 
+
+Moreover, phoneme duration is strictly based on context. 
+# Spoken conversation & Dialog
+## Dialog properties
+In a conversation between two people:
+- each takes turns to speak, which could be a single word or long as multiple sentences. 
+- speakers negotiate turn-taking.
+- a person at one point can interrupts the other to make a correction, and the other stops talking. 
+
+**Spoken chatbots** must determine when to talk: it requires determining when user has stopped talking (end-point detection), which is hard since people pause in the middle of utterances. 
+Humans detect when someone is about to finish talking and start immediately after.
+Traditional conversational agents wait for speaker to stop before processing utterance. Barge-in detection is needed to recognize user interruptions. 
+## Conversational Analysis
+### Speech acts & common ground
+Each turn in dialogue is a kind of action.
+We can distinguish between the following **speech acts** (a.k.a. **dialogue acts**):
+- **Constatives**: commit speaker to something being the case (e.g. answering, claiming, confirming, denying, disagreeing, stating).
+- **Directives**: attempt by speaker to get the addressee to do something (e.g. advising, asking, forbidding, inviting, ordering, requesting).
+- **Commissives**: commit speaker to some feature course of action (e.g. promising, planning, vowing, betting, opposing).
+- **Acknowledgement**: express speaker’s attitude regarding hearer with respect to action (e.g. apologizing, greeting, thanking, accepting an acknowledgment).
+
+Participant in joint activity need to establish a **common ground**, according to the **principle of closure**: when performing action, the agent requires evidence that it succeeded.
+Speech involves action of conveying information: speakers ground each other's utterances by acknowledging that hearer has understood. 
+Grounding is important for chatbots too. 
+### Conversational structure, initiative & inference
+Conversational structure consist of local structure between adjacent speech acts, such as adjacency pairs (e.g. question + answer, proposal + acceptance/rejection) and side sequences, such as correction sub.dialogue. 
+
+Some conversation are controlled by one person (e.g. reporter interviewing interviewee) but most human conversation have mixed initiative. 
+
+It is an important aspect of dialogue: the agents may be expected to draw certain inference from the conversation. 
+## Conversational Agents
+Conversational agents (a.k.a. dialogue systems, dialogue agents, chatbots) are used for: voice interfaces (e.g. control lights, set timers), entertainment, clinical uses (for mental health) and access services (e.g. book an hotel).
+
+They can be classified in two categories:
+- **Open-domain chatbots**: carry on extended conversation with the goal of mimic unstructured human-human conversation. Mostly designed for fun, possibly also for therapy.
+- **Task-oriented dialogue systems**: goal-based agents used to solve task like booking restaurants or maintaining shopping list. Interfaces to personal assistants, cars, appliances, robots.
+### Open-domain chatbots
+They can be:
+- **Rule-based**: use a set of rules to generate responses (e.g. ELIZA with pattern-action rules, PARRY with pattern-action rules + mental model). 
+- **Corpus-based**: mine large datasets of human conversation. 
+### Rule-based chatbots
+#### ELIZA
+It consisted of a set of very simple rules organized in keywords, each keywords has pattern and list of possible transformation.
+- If phrase matches multiple patterns, it choose the most specific rule. 
+- If NO keyword matches, it chooses non-committal responses (e.g. please go on, that's very interesting, I see).
+
+Memory trick for whenever “MY” is highest keyword: it randomly select transform on MEMORY list and store output in queue, and later, if no keyword matches a sentence, return MEMORY.
+#### PARRY: computational model of schizophrenia
+Another chatbot with clinical psychology focus: same pattern-response structure as ELIZA, but richer control structure, plus a **model of mental state** with variables modeling levels of anger, fear, and mistrust.
+
+Procedure:
+1. starts with mental state variables all set low.
+2. each user statement can change fear and anger (e.g. insults increases anger, flattery decreases anger, mentions of delusions increase fear)
+3. if nothing malevolent in input: anger, fear, and mistrust all drop.
+4. response then depends on mental state.
+
+It was the first system to pass a version of the Turing test in 1972 as psychiatrists couldn’t distinguish interviews with PARRY from transcripts of interviews with people diagnosed with paranoid schizophrenia.
+##### Emotion classes
+Many different emotion class grouping used for sentiment analysis.
+- Ekman's 6 basic emotions: happiness, surprise, fear, sadness, anger, disgust.
+- Plutchick’s wheel of emotion contains 8 basic emotions in opposing pairs: joy–sadness, anger–fear, trust–disgust, anticipation–surprise.
+- Spatial model: each emotion is a point in 2 or 3 dimensional space. 
+
+Scherer’s typology of affective states separates short-term emotions from long-
+term personality traits:
+- **Emotion**: relatively brief episode of response to an event (e.g. angry, sad, joyful, fearful, ashamed, proud, desperate).
+- **Mood**: subjective feeling of low intensity but long duration, often without apparent cause (e.g. cheerful, gloomy, irritable, listless, depressed, buoyant).
+- **Interpersonal stance**: affective stance taken toward another person in specific interaction (e.g. distant, cold, warm, supportive, contemptuous).
+- **Attitudes**: enduring preferences predispositions towards objects or persons (e.g. liking, loving, hating, valuing, desiring).
+- **Personality traits**: emotionally laden, stable personality dispositions and behavioral tendencies (e.g. nervous, anxious, reckless, morose, hostile, envious, jealous).
+
+Creating chatbots that interact in a relatively convincing way with user is not actually that difficult as very simple rule-based system already work quite well. 
+However, this has **anthropomorphism**, **privacy** & **ethical implications**: when designing chatbot it is important to consider potential harms as well as benefits. 
+### Corpus-based chatbots
+They produce context appropriate responses by either:
+- **Retrieving response** from large corpus of conversations: given user query and corpus of conversation, they find the response that is most similar to the query. 
+- **Generating response** using language model given the dialogue context: each response is generated by conditioning generation on the encoded query using an encoder-decoder or decoder-only model trained on conversational data. For dialog, the query will include previous responses. 
+
+Modern corpus-based chatbots are **data intensive** as they require hundreds of millions or billions of words. There are some questions regarding removal of personally identifiable information (PII).
+They can be used for transcripts of telephone conversations between volunteers, movie dialogues, paid crowd-worker conversations, pseudo-conversations from public posts on social media.
+
+Generative chatbots can get repetitive/boring. To avoid this problem, instead of greedily choosing most likely response, use diversity-enhanced versions of beam search or train with diversity-focused training objectives, adding minimum length constraints to produce longer utterances.
+
+Modern chatbots use RAG models to retrieving and refining knowledge. 
+## Task-oriented Dialog Agents
+They are goal-oriented. 
+### Frame-based architecture
+They consist of:
+- **frames** (actions/functions that agent can perform).
+- **slots** (variables/arguments to those functions).
+- **values** (assigned to the variables, initially unknown).  
+Frame is simply an action that can be performed, it contains a set of slots that need to be filled with information of a given type, each associated with a question to the user.
+
+They were proposed with Genial Understanding System (GUS) architecture which usually contains multiple frames. 
+
+The system must detect which slot of which frame user is filling and switch dialogue control to that frame. Slots can have condition-action rules.
+The Natural Language Understanding (NLU) extracts 3 things from user's utterances:
+1. **domain classification**: what the user is talking about. 
+2. **user intent determination**: what task/goal the user is trying to accomplish. 
+3. **slot filling**: extract values that user intends system to understand from their utterance to instantiate the task. It is common in industry to use handwritten rules to fill slots (e.g. regex) and use templates for pre-built response strings, which can be fixed or contains variables.
+
+Simple frame-based architectures, like many rule-based approaches, are high in precision and can provide coverage if the domain is narrow, but it can be expensive, slow to create rules and suffer from recall problems. 
+### Dialogue-state (or Belief-state) architecture
+They are sophisticated version of frame-based architecture. It has dialogue acts and better generation. It uses ML for slot-understanding. 
+
+They are composed of:
+1. **Natural Language Understanding** (NLU): it extract slot fillers from user's utterance using ML. 
+2. **Dialogue State Tracker** (DST): it maintains the current dialogue state, user's recent dialogue act and a set of slot-filler constraints from user. 
+3. **Dialogue Policy**: it decides what system should do/say next.
+4. **Natural Language Generation** (NLG): produces more natural, less tempered utterances.
+
+#### Natural Language Understanding (NLU)
+In order to mapping text to dialogue acts, we must combines the ideas of speech acts and grounding into a single representation which is language-independent.
+
+We can train a classifier to map words to semantic frame-filler, which requires large set of labeled sentences. 
+Otherwise, we can use a sequence labeller to label each input word with slot (note that we must normalize each extracted value to have the correct form).
+Alternatively, we could train a seq2seq model to directly produce the desired output.
+
+Dialogue-act detection and slot filling are often performed jointly. 
+If the system misrecognizes utterances, the user might make correction by repeating themself, rephrasing, or saying "no" to a confirmation question. 
+Corrections are hard for the system to understand, some features for detecting corrections in spoken dialogue are:
+- lexical: words like "no", "correction", "I do not", swear words or utterance length.
+- semantic: similarity between the candidate correction act and the user's prior utterance.
+- phonetic: phonetic overlap between the candidate correction act and the user's prior utterance.
+- prosodic: hyper-articulation, increases in F0 range, pause duration and word duration, generally normalized by the values for previous sentences. 
+- ASR: ASR confidence, language model probability. 
+#### Dialog policy
+At each turn, the system could predict the action based on the entire conversation history or the current dialogue state (filled frame slots) and the last system/user utterances. 
+
+Dialogue systems make errors. The system uses two mechanism to make sure it has "understood" the user: 
+- **Confirming understandings** with the user. It can be either explicit or implicit. ASR or NLU systems can assign a confidence value indicating how likely they understood the user, then we can use confidence thresholds to determine action. 
+- **Rejecting utterances** that system has likely **misunderstood**. Instead of repeating the question, it is better to guide the user on what they could say. 
+#### Natural Language Generation
+It is modeled in two stages:
+- **content planning** (what to say): dialogue policy decides what speech act to generate and what attributed (slot and values) say to user.
+- **sentence realization** (how to say it): generate natural language, either providing answer to user, or following a confirmation strategy. 
+
+Generalization is improved by performing **delexicalization**: replacing words in the training set that represent slot values with generic placeholder token. Then, we train an encoder-decoder architecture to map frames to delexicalized sentences. Finally, **relexicalize**.
+## Evaluating Dialog Systems
+Open-domain chatbots mainly require **human evaluation** (rather than automatic methods), which consist of:
+- participant evaluation: user who talked to chatbots assigns a score. 
+- observer evaluation: read transcript of conversation and assign score. 
+8 dimension of quality must be investigated: avoiding repetition, interestingness, making sense, fluency, listening, inquisitiveness, humanness, engagingness.
+
+Automatic evaluation methods are generally not used for chatbots, as they correlate poorly with human judgments. 
+A possible approach is adversarial evaluation inspired by the Turing test: we train a classifier able to distinguish between human and machine responses, the more successful the system is at fooling classifier, the better the system is.
+Recent approach uses ChatGPT for evaluating quality of dialog generated by other systems (LLM-as-a-judge).
+
+Task-based dialogue are mainly evaluated by measuring the performance on a task according to the end-to-end evaluation (task success) and slot error rate for sentence. Other useful metrics are efficiency (elapsed time for dialogue, number of turns/queries/corrections) and quality (number of ASR rejections, number of barge-in).
+## Ethical questions
+Ethical issues:
+- Safety: systems abusing users, distracting drivers, or giving bad medical advice. 
+- Representational harm: systems demeaning particular social groups.
+- Privacy: information leakage.
+# Agentic AI
+It is a class of AI that focuses on autonomous systems that can make decisions and perform tasks without human intervention. The independent systems automatically respond to conditions, to produce process results. 
+The field is closely linked to agentic automation, also known as agent-based process management systems, when applied to process automation. 
+Applications include software development, customer support, cybersecurity and business intelligence. 
+
+![](./assets/agenticAI_design_patterns.png)
+Popular architectures for using LLMs in workflow:
+- **Reflection pattern**: LLM checks its own output. It need police behavioral requirements (e.g. determine that nothing offensive is being said and no secret information is leaking).
+- **Tool-use pattern**: LLM makes use of tools (e.g. calculators or retrieval engines) and processes results.
+- **Re-act** (REasoning and ACTing) **pattern**: LLM reason about tools available and calls tools that perform actions on the world to achieve a goal. 
+- **Planning pattern**: LLM generates plan to achieve complicated goal, which involves executing multiple tasks. LLM must control that workflow executes successfully and re-plan accordingly if any task fails.
+- **Multi-agent pattern**: multiple LLMs interact with each other as agents. Each agent has specific capabilities. 
+
+[LangChain](https://python.langchain.com/docs/introduction/) is an open-source framework that simplifies the development of LLM powered applications. Some related libraries are LangGraph, for building complex workflow, and LangSmith, for monitoring workflows. 
+
+Trough instruction tuning we can train model to make use of tools: we simply declare at the start of the conversation what tools are available. 
+A special syntax is used in conversation to format 'call to' and 'response from' tool (it is just another actor in dialog).
+Behind the scenes, the toolkit does some parsing of the conversation and calls the actual tool. 
+## Engineering and evaluating RAG models
+Lots of choices must be made while building a RAG model: documents to include, how to chunk them, include images/tables or not, what embedding should we use, if re-ranking with BERT, how many relevant results to include in the prompt. 
+All these choices affects the overall performance of the system. 
+
+Evaluating RAG systems involves determining how correct the output is, and, if the evaluation dataset is available, compare the generated output with ground truth. 
+The problem is that desired and actual output usually are not exactly the same in the terms they contain. To do so we can use:
+- Exact match: checks whether the predicted text is exactly the same as the ground-truth text. 
+- BLEU-4: compares the text base on the counts of matching unigrams, bigrams, trigrams and 4-grams.
+- METEOR: allows for synonyms, stemming, rephrasing. 
+- ROUGE-L: uses longest continuous sequence of overlapping words to evaluate similarity.
+- BERT: uses a BERT model trained to produce a similarity score between documents to score the generated text. 
+- LLM-as-a-judge: just use an LLM to judge whether the answer are the same. 
+- LLM-as-a-jury: ask a number of LLM to vote.
