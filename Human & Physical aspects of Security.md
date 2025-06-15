@@ -875,3 +875,105 @@ recognize anomalous or abrupt changes in the sensor values, or inconsistencies b
 various sensors. Forces attackers to maintain realistic system behavior, making attacks harder.
 
 May require accurate models of system behavior, which might not always be available.
+# Industrial System Security
+**SCADA** (**Supervisory Control and Data Acquisition**) is a centralized system that control multiple PLCs or RTUs (Remote Terminal Units).
+A **PLC** (**Programmable Logic Controller**) is a real-time computer that directly control machinery such as industrial robots, motors, ovens, executing logic (actuating) based on sensor inputs.
+**HMI** (**Human-Machine Interfaces**) are touchscreens, terminals, pads, and any other graphical displays used by operators. 
+**Historians** are databases optimized for time-series and live interaction, storing process and sensors variables for analysis. 
+## Famous industrial systems attacks
+### StuxNet (2010)
+Targets Siemens PLCs at the Natanz nuclear facility. 
+A worm was found with unknown effective date of deployment. It was a single executable, not controlled remotely. 
+The attack chain consisted of:
+- Windows OS: the worm spreads through local network infecting other USB keys.
+- Siemens Step7 application running on Windows: modifies projects to MITM the communication with PLC. It tampers with outbound data to show the correct frequency.
+- Siemens S7 PLC: modifies the spinning frequencies of the centrifuges (goal of the attack). 
+### Industroyer (2016)
+Targets the Ukrainian power grid. 
+A malware was discovered after payload execution.
+The attack chain consisted of:
+- Initial access left no traces, likely vectors are phishing or compromised credential.
+- The malware was deployed on SCADA or substation WS for persistence.
+- The attack manually scans for devices using IEC 101, 104, 81850, or OPC-DA protocols.
+- Execute "valid"protocol commands to open circuit breakers, disrupting power distribution.
+## Triton (a.k.a. Tritis) (2017)
+Targets Triconex SIS in petrochemical plant.
+It was the first known malware specifically **targeting safety systems**, not just operations.
+A malware was discovered upon an error triggering a safety shutdown in the infected SIS.
+The attack chain consisted of:
+- Initial access left no traces, the most likely vector is spear-phishing. 
+- It maintained access in the IT network for an extended period.
+- It gained access into the industrial network via a misconfigured DMZ. 
+- Used RDP (Remote Desktop Protocol) to control a workstation within the OT environment.
+- Injected a Remote Access Trojan (RAT) into the Safety Instrumented System (SIS).
+
+It used a physical key switch to toggle between run and program mode. The switch was left in program mode, which should not have been the case during operation. This enabled remote reprogramming of safety logic, otherwise the attack would have failed.
+The attempted reprogramming caused a fault that **triggered a fail-safe**, leading to plant shutdown.
+## The Purdue Model
+It represent layer-based division of IT/OT networks for ICS environments, focused on a hierarchical division of systems. 
+
+It defines a 6-level architecture (from 0 to 5), where each level corresponds to a layer of functionality, ranging from physical processes up to enterprise IT systems. 
+It is particularly effective from a security standpoint, allowing to correctly segment the network, identify access control policies, and overall simplifying the threat modelling process.  
+
+Ideally, the data flow follows:
+- Top-down approach where business systems send production plans and instructions down to operations. 
+- Bottom-up approach where sensors and control systems report status and performance up to the business layer. 
+
+The 6 layers are:
+0. Field.
+1. Control.
+2. Supervisory.
+3. Production Planning.
+4. On-site Enterprise.
+5. Enterprise. 
+This division allow us to identify the most relevant security measures given the logical and physical division of tasks.
+### Perimeter and IT network (5&4)
+Level 5 (enterprise) includes the global enterprise systems, such as administration tools, management ERPs and mail or web services (if on premise). It is typically located outside the industrial site (e.g., in data centers or cloud environment).
+Level 4 (on-site enterprise) is similar, but physically located in the industrial complex. It may contain engineering workstations not directly communicating with OT.
+
+Network security considerations:
+- Communication between spatially distant IT networks is done via VPN. 
+- Border firewalls (FWs) enforce consistent rules across all entry and exit points. 
+- DMZs are implemented if public servers are on premise, to separate internal networks. 
+### Industrial Network Interactions (4&3)
+DMZ acts as a secure intermediary between IT (level 5&4) and OT (level 3-0) networks. 
+No direct communication is allowed between IT and OT systems: all traffic must pass through the DMZ. Routing between Level 4 and Level 3 is strictly prohibited.
+
+Network security constraints:
+- Level 3 is only permitted to push data to the historian. It cannot receive queries or traffic from Level 4.
+- Level 4 can query the historian but has no access to SCADA or any other Level 3 components.
+- No enterprise traffic should enter or traverse the Level 3 network.
+### Industrial Production Planning (3)
+It is the highest industrial layer, containing historians, SCADA servers, industrial workstations, and potentially security-related servers.
+Level 3 (production planning) has multiple tasks, not hierarchically ordered. Therefore, this layer's networks should be divided by scope, hardening the access to the particularly critical ones (e.g., security).
+At this layer, IDSs for ICS protocols start to be effective.
+### Industrial Network to Lower Levels (3&2)
+Interaction with Level 2 (supervisory control) is done only through **jump hosts**, a dedicated and monitored server.
+Communication to/from the Jump Host can be implemented physically (via a dedicated interface) or logically (e.g., through a Level 4 firewall). Regardless of implementation, only remote SCADA/ICS access to Level 2 processes is allowed.
+### Lower Levels (2, 1&0)
+In lower levels, due to the nature of OT hardware (e.g., PLCs, RTUs, sensors), traditional EDR (Endpoint Detection and Response) tools are often not feasible.
+Instead, mostly OT-protocol network-based IDSs are viable.
+Moreover, if the production process is situated remotely (e.g., power grid) ideally a VPN should be present. 
+
+Security considerations:
+- Secure boot or similar firmware updates verification processes should be implemented on each updateable OT machine (e.g., PLC).
+- Authenticate and log commands employing RBAC (Role-Based Access Control).
+- Prefer encrypted/authenticated protocols.
+- Follow a push-based data flow as much as possible.
+#### Safety Instrumented Systems (SIS)
+A SIS is a control system designed specifically to detect and respond to unsafe conditions (not security related). Technically they are PLCs: they check the sensor data and act on level 0.
+Its goal is to bring the system to a safe state or halt it to prevent catastrophic failure. 
+It operates independently from normal process control systems. 
+
+Given its critical role and authorization, SIS should be isolated from the rest of communication. It feedback from SIS is necessary, [data diodes](https://en.wikipedia.org/wiki/Unidirectional_network) can allow one-way communication.
+## Purdue Cloud Limitations
+Cloud infrastructure, especially IoT devices, may break the Purdue model hierarchy:
+- External devices may control internal processes. 
+- Data flow is bidirectional with off-premises systems. 
+
+For example, cloud-based SCADA or historians require field devices to push real-time data directly to the cloud providers, bypassing level 4. Moreover, they may allow to issue control commands via the cloud interface, directly or indirectly routing them to level 1 devices. 
+
+However, cloud-based solutions increase functionality, so we cannot just ignore them.
+We need to consider every cloud interaction in the threat model, inserting gateways and historians between PLCs and cloud systems, yet we do not have a structured, functional approach that takes in consideration each possible cloud interaction.
+
+
