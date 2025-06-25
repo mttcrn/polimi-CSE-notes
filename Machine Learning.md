@@ -113,17 +113,17 @@ Let's write RSS in matrix form, to do so we need:
 - $w=(w_1, .., w_N)^T$ as the $d \times 1$ vector of parameters (one for each feature).
 Then:
 $$
-L(w) = {1\over2} RSS(w) = {1\over2} (t - \Phi w)^T (t - \Phi w)
+L(w) = \frac{1}{2} RSS(w) = \frac{1}{2}(t - \Phi w)^T (t - \Phi w)
 $$
 Note that $||t- \Phi w||^2 = (t - \Phi w)^T (t - \Phi w)$, one term is transposed otherwise we cannot make the matrix multiplication. 
 Moreover, the factor $1 \over 2$ is used to remove the factor $2$ that will come out the derivative.
 The goal is to find $w$ in order to minimize $L(w)$. 
 To do so, we compute first and second derivative:
 $$
-L(w) = {1 \over 2}[t^Tt -2t^T\Phi w + w^T\Phi^T \Phi w]
+L(w) = \frac{1}{2}[t^Tt -2t^T\Phi w + w^T\Phi^T \Phi w]
 $$
 $$
-{\partial L(w) \over \partial w} = {1 \over 2}[\overbrace{{\partial \over \partial w}t^Tt}^{A} - \overbrace{{\partial \over \partial w} 2t^T \Phi w}^{\text{B}} + \overbrace{{\partial \over \partial w} w^T \Phi^T \Phi w}^{\text{C}}]
+\frac{\partial L(w)}{\partial w} = \frac{1}{2}[\overbrace{\frac{\partial }{\partial w}t^Tt}^{A} - \overbrace{\frac{\partial}{\partial w} 2t^T \Phi w}^{\text{B}} + \overbrace{\frac{\partial}{\partial w} w^T \Phi^T \Phi w}^{\text{C}}]
 $$
 where:
 - A does not depend on $w$, therefore its contribute is 0.
@@ -131,7 +131,7 @@ where:
 - C can be solved taking into account that $w^t \Phi^t \Phi w = a$ is a symmetric matrix by construction, therefore ${\partial \over \partial w} w^t a w = 2aw$ if $a$ is symmetric, so $\text{C} = 2 \Phi^T \Phi w$.
 Putting all together:
 $$
-{\partial L(w) \over \partial w} = -\Phi^T t + \Phi^T \Phi w
+\frac{\partial L(w)} {\partial w} = -\Phi^T t + \Phi^T \Phi w
 $$
 Assuming **$\Phi^T\Phi$ is non singular**, then the minimum is reached for:  $$
 \hat{w}_{OLS} = (\Phi^T\Phi)^{-1} \Phi^Tt
@@ -378,10 +378,10 @@ $$
 #### Modeling challenges
 A central challenge in Bayesian modeling is specifying a suitable **model**, which should be flexible enough to admit all plausible outcomes and a suitable **prior distribution**, which must avoid giving zero or very small probabilities to possible events, but should also avoid spreading out the probability over all possibilities.
 
-To avoid uninformative priors, we may need to model dependencies between parameters. One strategy is to introduce **latent variables** (which capture hidden structure int the data) into the model and **hyperparameters** into the prior. 
+To avoid uninformative priors, we may need to model dependencies between parameters. One strategy is to introduce **latent variables** (which capture hidden structure in the data) and **hyperparameters** into the prior. 
 Both of these represents the ways of modeling dependencies in a interpretable way. 
 #### Computational challenges
-The other big challenge is computing the posterior distribution. 
+The other big challenge is computing the posterior distr\sibution. 
 There are several approaches:
 - **Analytical integration**: if we use conjugate priors, the posterior distribution can be computed analytically. It only works for simple models. 
 - **Gaussian (Laplace) approximation**: approximate the posterior distribution with a Gaussian. It works well when there are lot of data compared to the model complexity.
@@ -424,11 +424,11 @@ They have more complex analytical and computational properties than regression. 
   $t$ is a vector of length $K$ and contains a single 1 for the correct class and 0 elsewhere. $t$ is the vector of class probabilities. 
 
 We can use three approaches to classification:
-- **Discriminant functions approach**: build a function that directly maps each input to a specific class (e.g. [[Machine Learning#Artificial Neural Networks & Deep Learning Perceptron Learning Algorithm The Perceptron Algorithm|perceptron algorithm]], [[Machine Learning#K-nearest neighbors|k-nearest neighbors]]). 
+- **Discriminant functions approach**: build a function that directly maps each input to a specific class (e.g. LS, [[Machine Learning#Artificial Neural Networks & Deep Learning Perceptron Learning Algorithm The Perceptron Algorithm|perceptron algorithm]], [[Machine Learning#K-nearest neighbors|k-nearest neighbors]]). 
 - **Probabilistic approach**: model the conditional probability distribution $p(C_k|x)$ and use it to make optimal decisions. There are two alternatives:
 	- **Probabilistic discriminative approach**: model $p(C_k|x)$ directly using parametric models (e.g. [[Machine Learning#Logistic Regression|logistic regression]]).
 	- **Probabilistic generative approach**: model class conditional densities $p(x|C_k)$ together with prior probabilities $p(C_k)$ for the classes, then infer the posterior $p(x|C_k)$ using Bayes' rule (e.g. [[Machine Learning#|naive Bayes]]). 
-## Discriminant Functions approach
+## Discriminant function approach
 ### Two classes
 Given $y(x) = x^Tw + w_0$, the decision boundaries can be found with $y(x) = 0$. We assign $x$ to $C_1$ if $y(x) \ge 0$, to $C_2$ otherwise. 
 Moreover, given two points on the decision surface $x_A, x_B$ we can say that $y(x_A) = y(x_B) = 0$ and $w^T(x_A - x_B) = 0$: since the scalar product is null (perpendicular vectors) it means that $w$ is orthogonal to the decision surface. 
@@ -452,7 +452,7 @@ due to linearity of the discriminant functions.
 ![300](./assets/multiclass_classification.png)
 ### Least Squares for Classification
 Least squares approximates the conditional expectation $\mathbb{E}[t|x]$.
-Consider a general classification problem with $K$ classes using 1-of-$K$ encoding scheme for the target vector $t$. Each class is described by its own linear model:
+Consider a general classification problem with $K$ classes using **1-of-$K$ encoding scheme for the target vector $t$**. Each class is described by its own linear model:
 $$
 y_k(x) = w_k^Tx + w_{k0}
 $$
@@ -468,8 +468,8 @@ We have already seen how to minimize [[Machine Learning#Minimizing Least Squares
 A new input is assigned to a class for which $t_k = \tilde{x}^T\tilde{w}_k$ is the largest. 
 
 However, some problems arises in using least squares:
-- it is highly sensitive to outliers, unlike logistic regression. 
-- it does not works well with non-Gaussian distribution since LS is derived as the [[#Maximum Likelihood Estimation (MLE)|MLE]] under the assumption of Gaussian noise. LS regression assumes that the errors are normally (Gaussian) distributed around the predicted values. This assumption is valid for continuous targets but not for binary targets. This is the reason why LS fails in classification. 
+- it is highly **sensitive to outliers**, unlike logistic regression. 
+- it does not works well with non-Gaussian distribution since LS is derived as the [[#Maximum Likelihood Estimation (MLE)|MLE]] under the **assumption of Gaussian noise**. LS regression assumes that the errors are normally (Gaussian) distributed around the predicted values. This assumption is **valid for continuous targets but not for binary targets**. This is the reason why LS fails in classification. 
 
 So far, we have considered classification models that work directly in the input space. 
 All considered algorithms are equally applicable if we first make a fixed non-linear transformation of the input space using vector of basis functions $\phi(x)$.
@@ -533,7 +533,7 @@ since $t_n \in [-1, 1]$ therefore its L2-norm is 1.
 
 - The number of steps before convergence may be substantial. There is no bound on this number, so it has no practical use. 
 - We are not able to distinguish between non separable problems and slowly converging ones. 
-- If multiple solutions exists, the one found depends by the initialization of the parameters and the order of presentation of the data points. 
+- If multiple solutions exists, the one found **depends on the parameters initialization** and the **order of data points presentation**. 
 - It can be employed for K multi-class classification by training K one-versus-the-rest classifiers. 
 ### K-nearest neighbors
 The idea is to look at the nearby points to predict the target of a new point. It can be used for both regression and classification:
@@ -545,25 +545,26 @@ Given a test sample $x$:
     - **For regression**: Take the **average** (or weighted average) of the neighbor values.
 
 The number of neighbors $k$ is an hyperparameter that must be chosen accordingly: a small $k$ make the algorithm sensitive to noise, while a large $k$ lead to smooth decision boundary. it can be set using [[Machine Learning#Validation approach|cross validation]].
+It can be used as a **regularization hyperparameter**: the larger the value of $k$, the more the model is regularized: a smaller $k$ is going to give a more complex model, which is associated with smaller bias and higher variance (likely overfitting the training data).
+
 The choice of metric affects the performance, depending on the data distribution. 
 
-It is computationally expensive for large datasets, sensitive to irrelevant or redundant features and the performance depends on a good choice of $k$. 
-The hyperparameter $k$ can be used as a **regularization hyperparameter**: the larger the value of $k$, the more the model is regularized. A smaller $k$ is going to give a more complex model, which is associated with smaller bias and higher variance.
+It is computationally **expensive for large datasets**, sensitive to irrelevant or redundant features and the performance depends on a good choice of $k$. 
 
 KNN naturally supports multi-class classification using **majority voting** among neighbors. - In case of ties, a **tie-breaking rule** is needed (e.g., prioritize the closest neighbor or use weighted voting).
 ## Probabilistic Discriminative Models
 ### Logistic Regression
 #### Binary problem
-Consider a two-class classification problem. The posterior probability of class $\mathcal{C}_1$ can be written as a logistic sigmoid function:
+Consider a two-class classification problem. The posterior probability of class a sample to be classified in $\mathcal{C}_1$ can be written as a logistic sigmoid function:
 $$
 p(\mathcal{C_1}|\phi) = { 1 \over 1 + \exp(-w^T \phi)} = \sigma(w^T \phi)
 $$
 where (for brevity) $\phi = \phi(x)$ is the transformed input vector and $p(\mathcal{C}_2|\phi) = 1 - p(\mathcal{C}_1 | \phi)$.
 The bias term is omitted for clarity.
 This model is known as logistic regression. Differently from generative models, here we model $p(\mathcal{C}_k | \phi)$ directly. 
-##### Maximum Likelihood for Logistic Regression
+
 Given a dataset $\mathcal{D} = \{x_n, t_n\}$ with $n = 1, .., N$ and $t_n \in \{0, 1\}$ (binary classification problem).
-We want to maximize the probability of getting the right label:
+We want to maximize the probability of getting the right label (**maximum likelihood**):
 $$
 p(t|\phi(x), w) = \prod_{n=1}^N y_n^{t_n}(1 - y_n)^{1-t_n}
 $$
@@ -574,14 +575,14 @@ L(w) = -\ln p(t|\phi(x), w) = - \sum_{n=1}^N (t_n \ln y_n + (1-t_n)\ln(1-y_n)) =
 $$
 Then, to minimize it, we differentiate by applying the chain rule on $L_n$:
 $$
-{\partial L_n \over \partial y_n} = -{t_n \over y_n} +(1-t_n){1 \over 1 - y_n} =  { y_n - t_n \over y_n(1-y_n)}
+\frac{\partial L_n}{\partial y_n} = -\frac{t_n}{y_n} +(1-t_n)\frac{1}{1 - y_n} =  \frac{ y_n - t_n}{y_n(1-y_n)} 
 $$
 $$
-{\partial y_n \over \partial w} = {\partial y_n \over \partial z} \cdot {\partial z \over \partial w}  = y_n(1-y_n)\phi(x)
+\frac{\partial y_n}{\partial w} = \frac{\partial y_n}{\partial z} \cdot \frac{\partial z}{\partial w}  = y_n(1-y_n)\phi(x)
 $$
 where $z = w^t \phi(x)$ and ${\partial \sigma(z) \over \partial z} = \sigma(z)(1-\sigma(z))$.
 $$
-{\partial L_n \over \partial w} = {\partial L_n \over \partial y_n} {\partial y_n \over \partial w} = \underbrace{(y_n - t_n)}_\text{error}\overbrace{\phi(x)}^{\text{feature}} 
+\frac{\partial L_n}{\partial w} = \frac{\partial L_n}{\partial y_n} \frac{\partial y_n}{\partial w} = \underbrace{(y_n - t_n)}_\text{error}\overbrace{\phi(x)}^{\text{feature}} 
 $$
 The gradient of the loss function is:
 $$
@@ -591,7 +592,7 @@ $$
 - There is **NO closed form solution**, due to **non linearity** of the logistic sigmoid function. 
 - The error function is convex and can be optimized by standard **gradient optimization** techniques. 
 - Easy to adapt to the online learning setting.
-- The gradient has a meaningful interpretation: $y_n -t$ represent the difference between predicted probability and true label (prediction error): it means that the gradient updates weights in the direction that reduces the difference between predicted and actual values. 
+- The gradient has a meaningful interpretation since $y_n -t$ represent the difference between predicted probability and true label (prediction error): it means that the gradient updates weights in the **direction that reduces the difference between predicted and actual values**. 
 
 > [!TIP] Relation between cross-entropy and negative log likelihood
 > The general concept of **NLL loss** applies to **any probabilistic model** where we maximize the likelihood of observed data. It is defined as: $L_{NLL​}=−\sum_i ​\log P(y_i​∣x_i​)$.
@@ -621,15 +622,10 @@ Taking the gradient:
 $$
 \nabla L_{w_j} (w_1, ..., w_K) = \sum_{n=1}^N (y_{nj} - t_{nj})\phi_n
 $$
-The gradient is computed for each set of weight for each class. 
+The gradient is computed for each set of weight for each class
 #### Connection between Logistic Regression and Perceptron Algorithm
 If we replace the logistic function with a step function, both algorithms use the same update rule: $w \leftarrow w - \alpha(y(x_n, w) - t_n)\phi_n$.
 ![500](./assets/logistic_regression_step_function.png)
-#### Decision Boundaries
-If we properly train logistic regression, the classification error should **increase** when we use a **sub-optimal decision boundary**. This happens because:
-- Logistic regression finds the optimal decision boundary that minimizes classification error based on maximum likelihood estimation (MLE).
-- If we manually shift or modify this boundary without retraining the model, we move away from the optimal solution.
-- A sub-optimal boundary misclassifies more points, leading to a higher classification error.
 ## Probabilistic Generative Models
 ### Naive Bayes
 The naive assumption is that, given the class $C_k$, the input features $x_1, .., x_M$ are conditionally independent. So, the posterior probability can be simplifies to:
@@ -707,14 +703,14 @@ In the following graph, each blue dot represent a predicted model: ideally we wo
 ### Bias
 When we train a model multiple times on different datasets $\mathcal{D}$ sampled from the same distribution, we obtain different learned functions $y(x)$. The expected hypothesis, denoted as $\mathbb{E}[y(x)]$, represents the average prediction our model would make if we could train it on infinitely many datasets.
 
-Bias quantifies the error introduced by the model’s assumptions, measuring how far the expected prediction is from the true function $f(x)$:
+Bias quantifies the **error introduced by the model’s assumptions**, measuring **how far the expected prediction is from the true function** $f(x)$:
 $$
 bias^2 = \int (f(x) - \mathbb{E}[y(x)])^2p(x)dx
 $$
 High bias mean that the model is too simple to capture the underlying patterns, so **bias decreases when model complexity increases**. 
 Since we are not able to compute $f(x), \mathbb{E}[y(x)]$ or the true data distribution $p(x)$, the previous formula is purely theoretical.
 ### Variance
-It measure how much the learned function $y(x)$ varies when trained on different datasets. It quantifies the difference between what we learn from a particular dataset and the expected hypothesis:
+It measure **how much the learned function $y(x)$ varies when trained on different datasets**. It quantifies the difference between what we learn from a particular dataset and the expected hypothesis:
 $$
 variance = \int \mathbb{E}[(y(x) - \overline{y}(x))^2]p(x)dx
 $$
@@ -727,10 +723,10 @@ It **increases with simpler models** and/or **more samples**.
 As we can see from the graph, the balance between bias and variance determines the model's generalization ability. 
 Bias and variance directly influence **training error** and **prediction error**:
 - While **training error** decreases as model complexity increases, it is not a reliable measure of generalization since it behaves similarly to bias (large with simpler models and improves with higher hypothesis space).
-- However, training error is an optimistically biased estimate of the prediction error, meaning it tends to underestimate the true error on unseen data. The **prediction error** accounts for both bias and variance, making it a better indicator of how well the model generalizes.
+- However, **training error** is an **optimistically biased estimate** of the prediction error, meaning it tends to underestimate the true error on unseen data. The **prediction error** accounts for both bias and variance, making it a better indicator.
 
 In practice, we randomly divide the dataset into test an train: we use training data to optimize parameters and test data to evaluate the prediction error.
-For the test set to provide an **unbiased estimate** of the prediction error, it must not be used during training, including hyperparameter tuning or model selection. If the test set influences model choices, it effectively becomes part of the training process, leading to an optimistically biased evaluation that does not reflect real-world performance.
+For the test set to provide an unbiased estimate of the prediction error, it must not be used during training, including hyperparameter tuning or model selection. If the test set influences model choices, it effectively becomes part of the training process, leading to an optimistically biased evaluation that does not reflect real-world performance.
 
 | ![300](./assets/test_error.png) | ![300](./assets/test_error(1).png) |
 | ------------------------------- | ---------------------------------- |
@@ -742,19 +738,19 @@ The bias-variance trade-off can be managed using different techniques:
 	- **Dimension reduction**: the input variables are projected into a lower-dimensional subspace. 
 - Model ensemble: **bagging**, **boosting**.
 ## Curse of Dimensionality
-It refers to the exponential increase in volume of the input space as the number of dimensions (features) grows. 
+It refers to the **exponential increase in volume of the input space as the number of dimensions (features) grows**. 
 This makes working with high dimensional data challenging, due to several reasons:
 - As dimensions increases, the variance also increases which may lead to overfitting.
 - Need for more samples to cover the space effectively and avoid overfitting. 
-- High computational cost. 
+- High computational cost.
 
 Common pitfall:
 - If we can't solve a problem with a few features, adding more features seems like a good idea. 
 - However, the number of samples usually stay the same.
 - Despite adding more features, the model may perform worse due to the increased complexity, not better as expected. This is because the added features often do not provide meaningful information and may lead to overfitting.
 ## Feature Selection
-### Best Subset Selection (exhaustive search, a.k.a. brute force)
-1. Let $\mathcal{M}_0$ denote the null model, which contains no input feature (it simply predicts the sample mean for each observation).
+### Best Subset Selection ( a.k.a. exhaustive search, brute force)
+1. Let $\mathcal{M}_0$ denote the null model, which contains **no input feature** (it simply **predicts the sample mean** for each observation).
 2. For $k = 1, .., M$:
 	1. Fit all $\binom{M}{k}$ models that contains exactly $k$ features.
 	2. Pick the best among these $\binom{M}{k}$ models, having the smallest $RSS$ or equivalently largest $R^2$, and call it $\mathcal{M}_k$.
@@ -777,8 +773,8 @@ An example is [Pearson correlation coefficient](https://en.wikipedia.org/wiki/Pe
 #### Embedded methods
 The learning algorithm exploits its own variable selection techniques.
 
-We have already seen regularization approaches applied to linear models ([[Machine Learning#Ridge|Ridge regression]] and [[Machine Learning#Lasso|Lasso]]). 
-Such methods shrink the parameters towards zero. This helps control the bias-variance trade-off: by penalizing large weights, **regularization reduces model variance** (overfitting to noise) at the cost of increasing bias (model flexibility is reduced).
+We have already seen regularization approaches applied to linear models ([[Machine Learning#Ridge|Ridge]] and [[Machine Learning#Lasso|Lasso]]). 
+Such methods shrink the parameters towards zero. This helps control the bias-variance trade-off by penalizing large weights: **regularization reduces model variance** (overfitting to noise) at the cost of increasing bias (model flexibility is reduced).
 
 As for subset selection, for Ridge regression and Lasso we require a method to determine which of the models under consideration is best. So, we need a method for selecting the tuning **parameter $\lambda$.**
 **Cross-validation** provides a simple way to tackle this problem: 
@@ -787,7 +783,7 @@ As for subset selection, for Ridge regression and Lasso we require a method to d
 3. Finally, the model is **re-fit using all of the available observations** and the selected value of the tuning parameter. 
 
 - Advantages: efficient since it combines training and feature selection.
-- Disadvantages: model-dependent.
+- Disadvantages: **model-dependent**.
 #### Wrapper methods
 Evaluate model performance under different features subsets.
 - **Forward Selection**: starts from an empty model (no features) and add features one-at-a-time.
@@ -797,8 +793,8 @@ Evaluate model performance under different features subsets.
 Both forward selection and backward elimination evaluates a number of models that is quadratic in the number of features.
 Brute force evaluated $2^n - 1$ models, where $n$ is the number of features.
 
-Advantages: consider features interaction.
-Disadvantages: computationally expensive (especially brute force), prone to overfitting in small datasets as the model may appear to perform well on the training/validation fold **just by chance**, model-dependent.
+Advantages: consider **features interaction**.
+Disadvantages: computationally expensive (especially brute force), prone to **overfitting in small datasets** as the model may appear to perform well on the training/validation fold **just by chance**, model-dependent.
 ### Model evaluation
 The model containing all the features will always have the smallest training error, because adding more features increases the model's flexibility, allowing it to fit the training data better.
 However, we want to choose a model with **low test error**, not a low training error. 
@@ -816,8 +812,8 @@ $$
 L_{LOO} = {1 \over N} \sum_{n=1}^N (t_n - y_{\mathcal{D}\backslash\{n\}}(x_n))^2
 $$
 
-LOO is almost unbiased and slightly pessimistic. 
-However, it has an high computational costs, which make its application infeasible for large dataset. 
+LOO is **almost unbiased** and slightly pessimistic. 
+However, it has an **high computational costs**, which make its application infeasible for large dataset. 
 ##### k-fold Cross Validation
 Randomly divide the training data into $k$ equal parts $\mathcal{D}_1, .., \mathcal{D}_k$ (folds). 
 For each $i$, we learn the model using datapoints except $\mathcal{D}_i$ then its performance is estimated using $\mathcal{D}_i$ as validation set.
@@ -825,7 +821,7 @@ The final error estimate is the average over all data splits:
 $$
 L_{k-fold} = {1 \over k} \sum_{i=1}^k L_{\mathcal{D}_i}
 $$
-k-fold is much faster to compute rather than LOO, since common values for $k$ are 5 or 10, but it is more pessimistically biased. We generally use $k=10$ for a balanced bias-variance. 
+k-fold is much faster to compute rather than LOO, since common values for $k$ are 5 or 10, but it is more **pessimistically biased**. We generally use $k=10$ for a balanced bias-variance. 
 #### Adjustment Techniques
 ##### Mallows’ $C_p$ Criterion
 It adjusts the residual sum of squares (RSS) to include a penalty for model complexity:
@@ -860,8 +856,8 @@ The previous approaches operate on the original features.
 
 There are many techniques: Principal Component Analysis (PCA), Independent Component Analysis (ICA), Self-Organizing Maps (SOM), [[Artificial Neural Networks & Deep Learning#Autoencoders (AE)|Autoencoders]].
 ### Principal Component Analysis (PCA)
-It is a **feature extraction** method since it creates new features by transforming or combining existing ones. It is an unsupervised technique which is deterministic (as it does not have any random component). 
-The idea is to project data onto a lower-dimensional **orthonormal subspace** while preserving as much variance as possible.
+It is a **feature extraction** method since it creates new features by transforming or combining existing ones. It is an unsupervised technique which is **deterministic** (as it does not have any random component). 
+The idea is to project data onto a **lower-dimensional orthonormal subspace** while preserving as much variance as possible.
 A conceptual algorithm is:
 1. Find a direction (line) such that when the data is projected onto that line, it has the maximum variance.
 2. Find another direction, orthogonal to the first, that has maximum projected variance.
@@ -869,33 +865,33 @@ A conceptual algorithm is:
 4. Project the dataset onto these PCs. 
 
 A more rigorous algorithm:
-1. Mean center the data. 
+1. **Mean center the data**. 
    Since the PC identify the directions where the most of the variance of the data is present (direction is defined as a vector with tail in the origin) we should remove the mean values for each component. 
-2. (Optional but recommended) standardize the data to unit variance.
-3. Compute the empirical covariance matrix S.
-4. Calculate eigenvalues and eigenvectors of $S$: $S = {1 \over N-1} \sum_{n=1}^N(x_n - \overline{x})(x_n - \overline{x})^T$. 
+2. (Optional but recommended) **standardize the data to unit variance**.
+3. Compute the **empirical covariance matrix S**.
+4. Calculate **eigenvalues and eigenvectors** of $S$: $S = {1 \over N-1} \sum_{n=1}^N(x_n - \overline{x})(x_n - \overline{x})^T$. 
 	- The eigenvector $e_k$ with largest non-negative eigenvalue $\lambda_k$ is the $k$-th principal component (PC). 
 	- Moreover, $\lambda_k / \sum_i \lambda_i$ is the proportion of variance captured by the $k$-th PC. 
 5. Transform the data by projecting onto the top $k$ PCs.
 
-The set of PCs form an orthonormal basis for feature space, whose axes are aligned with the maximum variances of original data. 
+The set of PCs form an **orthonormal basis for feature space**, whose axes are aligned with the maximum variances of original data. 
 The projection of original data onto first $k$ PCs gives a reduced dimensionality reconstruction of the original data, while keeping most variance. In fact, $k$ must be chosen based on how much variance we would like to keep. Moreover, $k\le d$ ($k=d$ means NO reduction).
 Reconstruction will have some error, but it often is acceptable given the other benefits of dimensionality reduction. 
 
 There are a few methods to determine how many feature to choose:
-- Keep all the principal components until we have a cumulative variance of 90-95%: $$ \text{cumulative variance with k components} = {\sum_{i=1}^k \lambda_i \over \sum_{i=1}^M \lambda_i}  $$
+- Keep all the principal components until we have a **cumulative variance** of 90-95%: $$ \text{cumulative variance with k components} = {\sum_{i=1}^k \lambda_i \over \sum_{i=1}^M \lambda_i}  $$
 - Keep all the principal components which have more than 5% variance (discard only those which have lower variance).
-- Find the elbow in the cumulative variance function (after it stops increasing in a significant way). 
+- Find the **elbow** in the cumulative variance function (after it stops increasing in a significant way). 
 
 Advantages:
 - Help reduce overall computational complexity.
 - Improves generalization in supervised learning: reduced dimension gives a simpler hypothesis space and less risk of overfitting. 
-- It can be seen as noise reduction, since lower-variance directions may corresponds to noise.
+- It can be seen as **noise reduction**, since lower-variance directions may corresponds to noise.
 Disadvantages:
 - It fails when data consists of multiple clusters. 
 - The direction of greatest variance may not be the most informative.
 - Computationally expensive in high dimensions. 
-- Assumes linearity since it computes linear combinations of features. If data lies on a nonlinear manifold kernel PCA can help.
+- **Assumes linearity since it computes linear combinations of features**. If data lies on a nonlinear manifold kernel PCA can help.
 
 > [!TIP] Core property of PCA
 > Once we project our mean-normalized data onto the principal components (obtaining scores $t_i$), we can reconstruct the original data using the loadings matrix $W$  (i.e. the eigenvectors of the covariance matrix).
@@ -906,7 +902,7 @@ Disadvantages:
 
 PCA can be used for:
 - **Feature extraction**: reduce the dimensionality of the dataset by selecting only the number of PCs retaining information about the problem.
-- **Compression**: keep the first $k$ PCs and get $T_k = \tilde{X}W_k$. The linear transformation $W_k$ minimizes the reconstruction error: $$ \min_{W_k \in \mathbb{R}^{M \times k}} ||TW_k^T - \tilde{X}||^2_2$$
+- **Compression**: keep the first $k$ PCs and get $T_k = \tilde{X}W_k$. The linear transformation $W_k$ minimizes the reconstruction error: $$\min_{W_k \in \mathbb{R}^{M \times k}} ||TW_k^T - \tilde{X}||^2_2$$
 - **Data visualization**: reduce the dimensionality of the input dataset with $k=2,3$ to be able to visualize the data. 
 ## Model Ensembles
 The methods seen so far can reduce bias by increasing variance or viceversa. However, ensemble learning can reduce one without significantly increasing the other.
@@ -928,8 +924,8 @@ Disadvantages:
 - It does not help much when there is high bias (model robust to change in the training data.)
 
 > [!TIP] Bootstrap
-> A **bootstrap sample** is a new dataset created by randomly sampling from the original dataset **"with replacement"** which means that **each time we pick a data point, we put it back**,  so it can be picked again. 
-> This means that some points may appear multiple times, while others might not appear at all in a single bootstrap sample.
+> A **bootstrap** is a new dataset created by randomly sampling from the original dataset **"with replacement"** which means that **each time we pick a data point, we put it back**,  so it can be picked again. 
+> This means that some points may appear multiple times, while others might not appear at all.
 ### Boosting
 The idea is to sequentially train **weak learners** (a model which performance is slightly better than chance prediction), then combine them into a strong classifier. 
 
@@ -966,7 +962,7 @@ It provides a way to **understand how well a learning algorithm can generalize f
 Let's define the components of the PAC learning framework:
 - $X$: a set of possible instances (**input space**).
 - $H$: the hypothesis space, which is the set of **boolean functions** $h:X \rightarrow \{0,1\}$ that the learner can choose from. The possible outputs of the learning algorithm. 
-- $C$: a set of possible **target concepts**, where each concept $c: X \rightarrow \{0,1\}$ is a boolean function (e.g. binary classifier). One function of the concept class is the true target concept. 
+- $C$: a set of possible **target concepts**, where each concept $c: X \rightarrow \{0,1\}$ is a boolean function (e.g. binary classifier). One function of the concept class is the **true target concept**. 
 - $\mathcal{D}$: unknown probability distribution $\mathcal{P}$ over $X$. 
 
 The learner sees labelled data points from $\mathcal{D}$, generated according to the target concept $c \in C$, and it outputs a hypothesis $h$ estimating $c$.
@@ -975,7 +971,6 @@ The learner sees labelled data points from $\mathcal{D}$, generated according to
 > In the **realizable case**, we assume that the labels are given by some $c \in C$.
 >  In the **agnostic case**, we do not assume that the labels follow a function in $C$.
 
-### Risk and error
 - **Population Risk Minimization**:
   If we know $\mathcal{P}$, the learned hypothesis $h$ is evaluated according to its true error: $$L_{true} = Pr_{x \in \mathcal{P}} [c(x) \neq h(x)]$$However, since $\mathcal{P}$ and $c$ are unknown, we cannot compute $L_{ture}$ directly, so we want to bound $L_{true}$ given $L_{train}$.
 - **Empirical Risk Minimization**:
@@ -990,7 +985,7 @@ So it is the subset of $H$ that agrees with all training examples.
 
 First, we consider when $L_{train}(h) = 0$ (perfect classification, **consistent learner**).
 
-> [!THEOREM] PAC bound for finite hypothesis spaces
+> [!THEOREM] PAC bound for finite hypothesis space (consistent learner)
 > Given:
 > - a finite hypothesis space $H$
 > - $N$ i.i.d. samples of some target concept $c$
@@ -1055,33 +1050,34 @@ Pr(\mathbb{E}[\overline{X}] - \overline{X} > \epsilon) < e^{-2N\epsilon^2}
 $$
 We obtain a variation of the previous theorem, for $L_{true} > 0$:
 
-> [!THEOREM] $L_{train}$ bound
+> [!THEOREM] PAC bound for finite hypothesis space
 > Let $H$ be a finite hypothesis space, and $\mathcal{D}$ a dataset with $N$ i.i.d. samples. Then for any $0 \le \epsilon \le 1$, it holds:
 > $$
 > Pr(\exists h \in H | L_{true}(h) - L_{train}(h) > \epsilon) \le |H|e^{-2N\epsilon^2}
 > $$
 
-> [!THEOREM] $L_{test}$ bound 
-> Let $M$ i.i.d. samples to form a test set. 
-> Then, for any hypothesis $h \in H$ and any $\epsilon > 0$, with probability at least $1 - \delta$, the test error is bounded by: $$L_{test}(h) \le L_{train}(h) + \sqrt{\ln({2 \over \delta}) \over 2M}$$​​
-
-> [!ATTENTION] Generalization of the Hoeffding bound
-> In general $X_i \in [a, b]$, thus: $$Pr(\mathbb{E}[\overline{X}] - \overline{X} > \epsilon) < e^{-2N\epsilon^2 \over (b-a)^2}$$
-> 
-> So, if the loss we consider is bounded $l(y(x_i),t_i) \in [0, L]$, we have to account for the scaling factor $L$. The PAC bound becomes: $$ Pr(\exists h \in H | L_{true}(h) - L_{train}(h) > \epsilon) \le |H|e^{-2N\epsilon^2 \over L^2} $$
->
-
-### PAC bound & Bias-Variance trade-off
+To ensure generalization with error at most $\epsilon$ and confidence $1-\delta$, $N$ should be at least:
+$$
+N \ge {1 \over 2 \epsilon^2}(\ln|H| + \ln {1 \over \delta})
+$$
 The generalization bound can also be written as:
 $$
 L_{true}(h) \le \underbrace{L_{train}(h)}_{\text{Bias}} + \underbrace{\sqrt{\ln|H| + \ln {1 \over \delta} \over 2N}}_{\text{Variance}}
 $$
 - For large $|H|$: potentially low bias (assuming we can find a good $h$) but high variance (looser bound).
 - For small $|H|$: high bias but lower variance (tighter bound).
-To ensure generalization with error at most $\epsilon$ and confidence $1-\delta$, $N$ should be at least:
-$$
-N \ge {1 \over 2 \epsilon^2}(\ln|H| + \ln {1 \over \delta})
-$$
+
+
+> [!THEOREM] $L_{test}$ bound 
+> Let $M$ i.i.d. samples to form a test set. 
+> Then, for any hypothesis $h \in H$ and any $\epsilon > 0$, with probability at least $1 - \delta$, the test error is bounded by: $$L_{test}(h) \le L_{train}(h) + \sqrt{\ln({1\over \delta}) \over 2M}$$​​
+
+> [!ATTENTION] Generalization of the Hoeffding bound
+> In general $X_i \in [a, b]$, thus: $$Pr(\mathbb{E}[\overline{X}] - \overline{X} > \epsilon) < e^{-2N\epsilon^2 \over (b-a)^2}$$
+> 
+> So, if the loss we consider is bounded $l(y(x_i),t_i) \in [0, L]$, we have to account for the scaling factor $L$. The PAC bound becomes: $$ Pr(\exists h \in H | L_{true}(h) - L_{train}(h) > \epsilon) \le |H|e^{-2N\epsilon^2 \over L^2} $$
+
+
 # Vapinik-Chervonenkis (VC) dimension
 A **dichotomy** of a set $S$ is a partition of $S$ into two disjoint subset. 
 
@@ -1115,7 +1111,8 @@ $$
 **Structural Risk Minimization** (SRM) is a principle where we choose the hypothesis space $H$ to minimize the generalization bound: instead of minimizing just the training error we take into account the complexity of the model (trough VC dimension). 
 The idea is that we prefer simpler models if they performs comparably to complex ones.
 
-The VC dimension of a **finite hypothesis space** is **upper bounded**, in fact $VC(H) \le \log_2(|H|)$. If $VC(H) = d$, then there exists at least $2^d$ functions in $H$, since there are at least $2^d$ possible labelings of $d$ points: $|H| \ge 2^d$.
+The VC dimension of a **finite hypothesis space** is **upper bounded**, in fact $VC(H) \le \log_2(|H|)$. 
+If $VC(H) = d$, then there exists at least $2^d$ functions in $H$, since there are at least $2^d$ possible labelings of $d$ points: $|H| \ge 2^d$.
 Moreover, concept class $C$ with $VC(C) = \infty$ is not PAC-learnable: the idea is that no finite sample size can guarantee generalization for all target concepts in $C$.
 
 > [!TIP] PAC-learning and VC dimension
@@ -1123,8 +1120,8 @@ Moreover, concept class $C$ with $VC(C) = \infty$ is not PAC-learnable: the idea
 > - Infinite VC dimension -> not PAC learnable.
 > This is why VC dimension is often called the combinatorial measure of learnability. 
 # Kernel Methods
-Kernel methods are memory-based (e.g. K-NN): they need to keep the training data since it is used during the prediction phase.
-They are fast to train, but slow to predict: the bottleneck is the number of samples, so we can increase the number of features without "paying" computationally. 
+Kernel methods are **memory-based** (e.g. K-NN): they need to keep the training data since it is used during the prediction phase.
+They are **fast to train**, but **slow to predict**: the **bottleneck is the number of samples**, so we can increase the number of features without "paying" computationally. 
 They require a metric to be defined. 
 
 In the case the model we are considering is not performing well, even by tuning properly the parameters (e.g. cross-validation), we have two opposite options: simplify the model or increase its complexity. In the second case, one might see the problem in a more complex space: the kernel space.
@@ -1162,9 +1159,8 @@ Many linear parametric models can be re-cast into equivalent **dual representati
 Note that the kernel function is a scalar value while $x$ is an M-dimensional vector. 
 
 > [!DEFINITION] Kernel Trick
-> The **kernel trick** is an inner product that allows extending well-known algorithms.  
-> 
-> If a model depends only on the dot product $\phi(x)^T \phi(x')$, we can replace these dot products by a kernel function $k(x, x')$ without explicitly computing $\phi(x)$, enabling efficient computations in very high or infinite dimensional spaces. 
+> The **kernel trick** consist in replacing the inner products $\phi(x)^T \phi(x)$ with the kernel function $k(x, x')$ without ever computing $\phi(x)$.
+
 ### Constructing Kernels
 To exploit kernel substitution, we need valid kernel functions.
 
@@ -1196,22 +1192,19 @@ $$
 10) \ k(x, x') &=  k_a(x_a, x_a') \cdot k_b(x_b, x_b')\\
 \end{align}
 $$
-#### Gaussian Kernel - Radial Basis Function (RBF)
+#### Gaussian (RBF) Kernel
 A commonly used kernel is the Gaussian  or Radial Basis Function (RBF) kernel:
 $$
 k(x, x') = \exp({-||x-x'||^2 \over 2 \sigma^2})
 $$
+where $\sigma$ controls the width of the kernel: a small $\sigma$ means that only very close points are considered similar. 
+
 It is valid: by expanding the square we get $||x-x'||^2 = x^Tx + x'^Tx' - 2x^Tx'$ so that $k(x, x') = \exp(-{x^Tx \over 2 \sigma^2})\exp(-{x'^Tx' \over 2\sigma^2})\exp({x^Tx' \over \sigma^2})$, then from kernel construction rules 2 and 4 together with the validity of linear kernel we have proved it to be valid.
 It can be extended to non-Euclidean distances:
 $$
 k(x, x') = \exp(-{1 \over 2 \sigma^2}(\kappa(x, x) + \kappa(x', x') -2\kappa(x, x')))
 $$
-Kernels can be extended to inputs that are symbolic, rather than simply vectors of real numbers. 
-
-Given a generative model $p(x)$ we define a kernel by $k(x, x') = p(x)p(x')$. 
-It is valid since it is an inner product in the one-dimensional feature space defined by the mapping $p(x)$. 
-The idea is that two inputs $x$ and $x'$ are similar if they have high probabilities of being generated in a certain context. 
-
+##### Radial Basis Functions
 Radial basis functions are function that depend only on the radial distance (typically Euclidean) of a point $x$ from a center $\mu_i$: 
 $$
 \phi_j (x) = h(\|x-\mu_j|_2)
@@ -1220,9 +1213,8 @@ RBF can be used for exact interpolation:
 $$
 f(x) = \sum_{n=1}^N w_ h(\|x-x_n\|_2)
 $$
-However, since the data in ML are generally noisy, exact interpolation is not very useful. Exact interpolation can lead to overfitting, where the model tries to perfectly fit noisy training data, reducing generalization to new data points.
-
-To mitigate issues related to regions of low basis function activation, we can use normalized radial basis functions. 
+However, since the data in ML are generally noisy, exact interpolation is not very useful as it can lead to **overfitting**, where the model tries to **perfectly fit noisy training data**, reducing generalization to new data points.
+To mitigate issues related to regions of low basis function activation, we can use **normalized radial basis functions**. 
 Normalization is sometimes used in practice as it avoids having regions of input space where all basis functions takes small values, which would necessarily lead to predictions in such regions that are either small or controlled purely bu the bias parameter. 
 #### Automatic Relevance Determination (ARD) kernel
 In many datasets, some input features may be more relevant than others for making predictions.
@@ -1232,7 +1224,11 @@ k(x, x') = \sigma^2 exp(-\sum_d \frac{\|x_d-x_d'\|^2}{2l_d^2})
 $$
 where $\sigma^2$ is the signal variance, $l_d$ is the length-scale for dimension $d$ (learned from data):
 - a small $l_d$ means that the output changes rapidly with $x_d$, so the dimension is important. 
-- a large $l_d$ means that the output is insensitive to $x_d$, so the dimension is irrelevant. ## Constructing Kernels
+- a large $l_d$ means that the output is insensitive to $x_d$, so the dimension is irrelevant. 
+#### Generative Kernel
+Given a generative model $p(x)$ we define a kernel by $k(x, x') = p(x)p(x')$. 
+It is valid since it is an inner product in the one-dimensional feature space defined by the mapping $p(x)$. 
+The idea is that two inputs $x$ and $x'$ are similar if they have high probabilities of being generated in a certain context. 
 ## Dual Representation
 Many linear models for regression and classification can be reformulated in terms of **dual representation**, in which the kernel function arises naturally. This approach is central to methods such as [[Machine Learning#Support Vector Machines (SVM)|SVM]].
 ### Kernelized Ridge regression
@@ -1351,6 +1347,7 @@ The key idea is that the perceptron decision function can be reformulated in a w
 - Take the perceptron.
 - Replace the dot product with an arbitrary similarity function: it is still a dot product but in a transformed space.
 - As result, we have a more powerful learner that can handle complex, non-linear patterns while maintaining convex optimization, meaning there are no local minima, only a single global optimum.
+
 The perceptron decision function can be written as:
 $$
 f(x_q) = sign(\sum^M_{j=1} w_j \phi_j(x_q))
@@ -1376,10 +1373,11 @@ In conclusion:
 - The similarity function is the dot product $\phi(x_q) \cdot \phi(x_n)$.
 - Thus, the perceptron can be viewed as an **instance-based learner** where the similarity function is the dot product in the feature space.
 This formulation directly connects the perceptron to kernel methods and provides the foundation for the SVM.
-## Learning SVMs
-The goal is to **maximize the margin**, which is the distance between the decision boundary (hyperplane) and the closest data points from either class, the support vectors: 
+## SVMs training
+The goal is to **maximize the margin**, which is the distance between the decision boundary (hyperplane) and the closest data points from either class (called support vectors). 
+The objective is:
 $$
-\min_n t_n (w^T \phi(x_n) + b)
+\max_{w, b} \min_n t_n (w^T \phi(x_n) + b)
 $$
 Maximizing this margin helps improve generalization by ensuring the classifier has a **robust separation between classes**, which leads to **better performance on unseen data**.
 It is a weight optimization problem. 
@@ -1395,19 +1393,19 @@ $$
 \begin{align}
 & \text{Minimize} & \frac{1}{2} \|w\|_2^2\\
 & \text{Subject to} & t_n(w^T \phi(x_n) + b) \ge 1 \\ & &\text{forall } n\\
-\end{align}h_i(w) = 0
+\end{align}
 $$
 - The objective $\frac{1}{2} \|w\|_2^2$​ is chosen to make the optimization problem **convex and differentiable** (a quadratic programming problem). 
 - The margin constraint ensures that **all training points are correctly classified with a margin of at least 1**.
-It as a constrained optimization problem (in this general form):
+
+It as a **constrained optimization problem** (in this general form):
 $$
 \begin{align}
 & \text{Minimize} & f(w)\\
 & \text{Subject to} & h_i(w) = 0, \ \forall i\\
 \end{align}
 $$
-if $f$ and $h_i$ are linear we have linear programming, but in this case we have a quadratic problem: it possible to apply optimization techniques such as **Lagrangian multipliers** or and **KKT conditions** (Karush-Kuhn-Tucker).
-
+if $f$ and $h_i$ are linear we have linear programming, but in this case we have a quadratic problem: it possible to apply optimization techniques such as **Lagrangian multipliers** or **KKT conditions** (Karush-Kuhn-Tucker).
 To solve the constrained optimization problem, we construct the Lagrangian function: 
 $$
 L(w, \lambda) = f(w) + \sum_i \lambda_i h_i (w)
@@ -1479,23 +1477,7 @@ $$
 where $\mathcal{S}$ is the set of support vectors and $N_{\mathcal{S}}$ is the number of support vectors.
 Notice that $N_{\mathcal{S}}$ is usually much smaller than $N$, leading to a sparse representation of the model. 
 The **computational cost** of computing **predictions** scales with the **number of support vectors**. 
-## Curse of dimensionality
-As the number of dimensions (features) increases, several issues arises in SVMs:
-- **Increase in support vectors**: as in higher dimensions data points tends to be more sparse, and more support vectors are required to define the separating hyperplane.
-- **Scalability** issues: as the **computational cost** of evaluating the kernel function grows with the number of support vectors. Moreover, **memory requirement** increases as each support vector needs to be stored and processes during prediction. 
-- Impact on **generalization**: with more support vectors the SVMs may overfit.
-### Bounds: SVMs generalization capacity
-#### Margin bound
-The **bound on the VC dimension decreases as the margin increases**: a larger margin reduces the model's capacity to overfit, effectively lowering the VC dimension. 
-However, the margin bound is generally considered **loose**, meaning it may not provide a tight estimate of the actual generalization error. 
-#### Leave-One-Out Bound (LOO Bound)
-An upper bound on the leave-one-out error can be easily computed using the number of support vectors:
-$$
-L_h \le \frac{E[N_s]}{N}
-$$
-where $N_s$ is the number of support vectors and $N$ is the total number of training samples. 
-This bound does not need to retrain the SVM multiple times. It provides a direct measure of generalization based on the number of support vectors. 
-## Handling noisy data: soft-margin SVM
+## Soft-Margin SVM: handling noisy data
 Real-world data is often noisy, making it challenging to find a perfectly separable hyperplane. 
 To address this, **soft-margin SVMs** introduce slack variables $\xi_i \ge 0$ which allows some data points to violate the margin constraint, account for missclassification or noisy data. 
 
@@ -1523,8 +1505,34 @@ $$
 where support vectors are points associated to an $\alpha_n \ge 0$:
 - if $\alpha_n < C$ the points lies on the margin.
 - if $\alpha_n = C$ the point lies inside the margin, and it can be either correctly classifies ($\xi_i \le 1$) or misclassified ($\xi_i > 1$).
+## Advantages and Disadvantages
+### Curse of dimensionality
+As the number of dimensions (features) increases, several issues arises in SVMs:
+- **Increase in support vectors**: as higher dimensions data points tends to be more **sparse**, and more support vectors are required to define the separating hyperplane.
+- **Scalability** issues: as the **computational cost** of evaluating the kernel function grows with the number of support vectors. Moreover, **memory requirement** increases as each support vector needs to be stored and processes during prediction. 
+- Impact on **generalization**: with more support vectors the SVMs may overfit.
+### Bounds: SVMs generalization capacity
+#### Margin bound
+The **bound on the VC dimension decreases as the margin increases**: a larger margin reduces the model's capacity to overfit, effectively lowering the VC dimension. 
+However, the margin bound is generally considered **loose**, meaning it may not provide a tight estimate of the actual generalization error. 
+#### Leave-One-Out Bound (LOO Bound)
+When defining the decision boundary, only the support vector really matters. 
+So, an upper bound on the LOO error can be easily computed using the **number of support vectors**:
+$$
+L_{LOO} \le \frac{E[N_s]}{N}
+$$
+where $N_s$ is the number of support vectors and $N$ is the total number of training samples. 
+- This bound does not need to retrain the SVM multiple times. 
+- It provides a direct measure of generalization based on the number of support vectors: in general with few support vectors the model will generalize well. 
+
+| Advantages                                                                                                                     | Disadvantages                                                                                                                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Effective in high-dimensional spaces:** where the number of features is large.                                               | **Scalability issues:** training time and memory usage grow quickly with the number of training samples and support vectors, making SVMs less suitable for very large datasets. |
+| **Kernel trick** allows learning complex **nonlinear boundaries**.                                                             | **Interpretability can be limited** when using complex kernels.                                                                                                                 |
+| **Margin maximization promotes good generalization:** lower risk of overfitting, leading to better performance on unseen data. | **Sensitive to noisy or overlapping data** even when using soft-margin SVMs,                                                                                                    |
+
 # Markov Decision Processes
-The goal of sequential decision making is to select actions to maximize the cumulative rewards. Actions have long-term consequences. Reward may be delayed. So, it may be better to sacrifice immediate reward to gain more long-term reward. 
+The goal of **sequential decision making** is to select actions to maximize the cumulative rewards. Actions have long-term consequences. Reward may be delayed. So, it may be better to sacrifice immediate reward to gain more long-term reward. 
 
 ## Agent-Environment Interaction
 At each step $t$ the **agent**: executes action $a_t$, receives observation $o_t$ and receives scalar reward $r_t$. 
@@ -1534,7 +1542,7 @@ The **history** is the sequence of observations, actions, rewards:
 $$
 h_t = a_1, o_1, r_1, .., a_t, o_t, r_t 
 $$
-It consist of all observable variables up to time $t$. It is the sensorimotor stream of a robot or embodied agent.
+It consist of all observable variables up to time $t$. 
 **State** is the information used to determine what happens next, which is influenced by the history:
 $$
 s_t = f(h_t) = f(a_1, o_1, r_1, .., a_t, o_t, r_t)
@@ -1544,18 +1552,18 @@ The agent state $s^a_t$ is the agent's internal representation, used to select t
 
 In a Markov decision process we assume that the **agent** has **complete knowledge** of the **current state** of the **environment** at **each time step**. We can call it fully observable environments. 
 
-**Reinforcement learning** is useful when the dynamics of the environment are unknown or difficult to be modeled (e.g., trading, betting) or when the model of the environment is too complex to be solved exactly, so that approximate solutions are searched for (e.g., humanoid robot control, group elevator dispatching). 
+**Reinforcement learning** is useful when the **dynamics of the environment are unknown** or **difficult to be modeled** (e.g., trading, betting) or when the model of the environment is **too complex to be solved exactly**, so that **approximate solutions** are searched for (e.g., humanoid robot control, group elevator dispatching). 
 
 > [!THEOREM] Markov assumption
 > "The future is independent of the past given the present"
-> A stochastic process $X_t$ is said to be Markovian if and only if:
+> A stochastic process $X_t$ is said to be **Markovian** if and only if:
 > $$
 > \mathbb{P}(X_{t+1} = j | X_t = i, X_{t-1} = k_{t-1}, .., X_1 = k_1, X_0 = k_0) = \mathbb{P}(X_{t+1} = j | X_t = i).
 > $$
 
 - The state captures all information from history.
 - Once the state if known, the history may be thrown away (thanks to the Markov assumption).
-- The state is a sufficient statistics for the future. The past interactions are not useful to know which action to take next. 
+- The **state is a sufficient** statistics for the future. The past interactions are not useful to know which action to take next. 
 - The conditional probabilities are transition probabilities.
 - If the probabilities are stationary (time invariant), we can write: $$ p_{ij} = \mathbb{P}(X_{t+1 = j|X_t = i}) = \mathbb{P}(X_1 = j | X_0 = i)$$
 ## Discrete-Time Finite MDP
@@ -1581,9 +1589,9 @@ v_t = r_{t+1} + \gamma r_{t+2} + .. = \sum_{k=0}^{\infty} \gamma^k r_{t + k + 1}
 $$
 where the discount $\gamma \in [0,1)$ is the present value of future rewards. 
 - The value of receiving reward $r$ after $k+1$ time-steps is $\gamma^kr$.
-- $\gamma$ can also be interpreted as the probability that the process will go on:
-	- $\gamma \rightarrow 0$ leads to "myopic" evaluation (immediate reward).
-	- $\gamma \rightarrow 1$ leads to "far-sighted" evaluation (delayed reward).
+- $\gamma$ can also be interpreted as the **probability that the process will go on**:
+	- $\gamma \rightarrow 0$ leads to "**myopic**" evaluation (immediate reward).
+	- $\gamma \rightarrow 1$ leads to "**far-sighted**" evaluation (delayed reward).
 - If $\gamma = 1$ we talk about **undiscounted rewards**. It is only safe to use when the episode always terminate in finite time and the rewards is bounded. Otherwise, it might result in infinite returns, which makes optimization unstable or undefined. 
 
 Most Markov reward (and decision) processes are discounted since:
@@ -1595,25 +1603,24 @@ Most Markov reward (and decision) processes are discounted since:
 - it is sometimes possible to use undiscounted Markov reward processes (i.e. $\gamma =1$) if all sequences terminate.  
 ### Policy
 A policy, at any given point in time, decides which action the agent selects: it fully defines the behavior of an agent. Policies can be:
-- Markovian $\subseteq$ History-dependent.
-- Deterministic $\subseteq$ Stochastic.
-- Stationary $\subseteq$ Non-stationary.
+- Markovian or History-dependent.
+- Deterministic or Stochastic.
+- Stationary or Non-stationary.
 #### Stationary Stochastic Markovian Policies
 A policy is a distribution over actions given the state: $\pi(a|s) = \mathbb{P}[a|s]$. 
 MDP policies depends on the current state (not the history), i.e. are stationary (time-independent).
 
 Given a MDP $\mathcal{M} = <\mathcal{S}, \mathcal{A}, P, R, \gamma, \mu>$ and a policy $\pi$, then:
 - the state sequence $s_1, s_2, ..$ is a Markov process $<\mathcal{S}, P^{\pi}, \mu>$.
-- the state and reward sequence $s_1, r_1, s_1, r_2$ is a Markov reward process $<\mathcal{S}, P^{\pi}, R^{\pi}, \gamma, \mu>$ where: $$P^{\pi} = \sum_{a \in \mathcal{A}} \pi(a|s)P(s'|s,a)$$ $$ R^{\pi} = \sum_{a \in \mathcal{A}} \pi(a|s) R(s|a)$$ 
+- the state and reward sequence $s_1, r_1, s_1, r_2$ is a Markov reward process $<\mathcal{S}, P^{\pi}, R^{\pi}, \gamma, \mu>$ where: $$P^{\pi} = \sum_{a \in \mathcal{A}} \pi(a|s)P(s'|s,a)$$$$ R^{\pi} = \sum_{a \in \mathcal{A}} \pi(a|s) R(s|a)$$
 ### Value Functions
 Given a policy $\pi$, it is possible to define the utility of each state trough **policy evaluation**.
-The state-value function $V^{\pi}(s)$ of an MDP is the expected return starting from state $s$, and then following policy $\pi$:
+The **state-value function** $V^{\pi}(s)$ of an MDP is the expected return starting from state $s$, and then following policy $\pi$:
 $$
 V^{\pi}(s) = \mathbb{E}_{\pi} [v_t |s_t=s]
 $$
-
 For control purposes, rather than the value of each state, it is easier to consider the value of each action in each state.
-The action-value function $Q^{\pi}(s, a)$ is the expected return starting from state $s$, taking action $a$, and then following policy $\pi$:
+The **action-value function** $Q^{\pi}(s, a)$ is the expected return starting from state $s$, taking action $a$, and then following policy $\pi$:
 $$
 Q^{\pi}(s,a) = \mathbb{E}_{\pi} [v_t | s_t = s, a_t = a]
 $$
@@ -1625,6 +1632,13 @@ $$
 	\\ &= \sum_{a \in A} \pi(a|s)(R(s, a) + \gamma \sum_{s' \in S} P (s'|s, a)V^{\pi}(s'))
 \end{align}
 $$
+The Bellman expectation equation can be expressed concisely using the induced MRP:
+$$
+V^{\pi} = R^{\pi} + \gamma P^{\pi} V^{\pi}
+$$
+with **direct solution** $V^{\pi} = (I - \gamma P^{\pi})^{-1} R^{\pi}$.
+It requires matrix inversion, which is computationally expensive: it costs $O(n^3)$ with $n$ number of states. This method is often infeasible for large state spaces. 
+
 The **action-value function** can similarly be decomposed:
 $$
 \begin{align}
@@ -1633,12 +1647,6 @@ $$
 			&= R(s, a) + \gamma \sum_{s' \in S}P(s' |s, a)\sum_{a' \in A} \pi (a', s')Q^{\pi}(s', a')
 \end{align}
 $$
-The Bellman expectation equation can be expressed concisely using the induced MRP:
-$$
-V^{\pi} = R^{\pi} + \gamma P^{\pi} V^{\pi}
-$$
-with **direct solution** $V^{\pi} = (I - \gamma P^{\pi})^{-1} R^{\pi}$.
-It requires matrix inversion, which is computationally expensive: it costs $O(n^3)$ with $n$ number of states. This method is often infeasible for large state spaces. 
 ##### Bellman Operator
 The Bellman operator for $V^{\pi}$ is defined as $T^{\pi}: \mathbb{R}^{|S|} \rightarrow \mathbb{R}^{|S|}$ (maps value functions to value functions):
 $$
@@ -1659,7 +1667,7 @@ $$
 - If $0 < \gamma < 1$ then $T^{\pi}$ is a contradiction w.r.t. the maximum norm.
 ### Optimal Value Function
 - The **optimal state-value function** $V^*(s)$ is the maximum value function over all policies: $V^*(s) = \max_{\pi} V^{\pi} (s)$.
-- The optimal action-value function $Q^*(s, a)$ is the maximum action-value function over all policies: $Q^* (s,a) = \max_{\pi} Q^{\pi} (s, a)$.
+- The **optimal action-value function** $Q^*(s, a)$ is the maximum action-value function over all policies: $Q^* (s,a) = \max_{\pi} Q^{\pi} (s, a)$.
 
 The optimal value function specifies the best possible performance in the MDP.
 An MDP is "solved" when we know the optimal action-value function $Q^*(s,a)$ as it contains all the information to execute the optimal policy $\pi^*$.
@@ -1685,8 +1693,8 @@ $$
 \end{cases}
 $$
 
-> [!NOTE] Deterministic optimal policy for finite MDP
-> For any finite MDP with a finite state space $\mathcal{S}$ and a finite action space $\mathcal{A}$, there always exists a deterministic, stationary and Markovian policy that is optimal.
+> [!NOTE] Existence of optimal policy for finite MDP
+> For any finite MDP with a finite state space $\mathcal{S}$ and a finite action space $\mathcal{A}$, there always exists a **deterministic**, **stationary** and **Markovian** policy that is optimal.
 > That means you can find an optimal policy by simply choosing the best action at each state according to $Q^*(s,a)$.
 
 #### Bellman Optimality Equation
@@ -1719,7 +1727,7 @@ $$
 - $V^{\pi}$ is the **unique fixed point** of $T^{\pi}$, thus $V^*$ is the unique fixed point for $T^*$.
 - For any vector $f \in \mathbb{R}^{|\mathcal{S}|}$ and any policy $\pi$, we have $\lim_{k \rightarrow \infty} (T^{\pi})^kf = V^{\pi}$ thus $\lim_{k \rightarrow \infty} (T^*)^kf = V^*$.
 
-### Iterative Methods
+## Iterative Methods
 Note that the Bellman optimality equation is not linear and there not exists a closed form solution for the general case. 
 It can be solved through an iterative method (i.e. dynamic programming, linear programming, reinforcement learning).
 
@@ -1759,7 +1767,7 @@ Markov decision processes satisfy both properties.
 - Bellman equation gives recursive decomposition.
 - Value functions stores and reuses solutions. 
 
-Dynamic programming assumes full knowledge of the MDP. It is used for planning an MDP. It can be used for:
+Dynamic programming **assumes full knowledge of the MDP**. It is used for planning an MDP. It can be used for:
 - Prediction: takes as input a MDP and policy $\pi$ and gives as output the value function $V^{\pi}$.
 - Control: takes as input a MDP and gives as output the optimal value function $V^*$ and the optimal policy $\pi^*$.
 ## Finite-Horizon DP
@@ -1834,24 +1842,24 @@ $$
 Unlike policy iteration, there is NO explicit policy. The intermediate value functions $V_k$ may not correspond to any real policy. 
 
 > [!THEOREM] Value iteration convergence
-> Value iteration converges to the optimal state-value function:
+> Value iteration converges to the optimal state value function:
 > $$
 >  \lim_{k \rightarrow \infty} V_k = V^*
 >  $$
 
-Proof uses the fact that $T^*$ is a contraction mapping w.r.t. the $\infty$-norm: 
+Proof uses the fact that $T^*$ is a contraction mapping w.r.t. the $\infty$-norm: is a contraction mapping 
 $$
 \|V_{k+1} - V^*\|_{\infty} = \|T^* V_k - T^*V^*\|_{\infty} \le \gamma \|V_k - V^*\|_{\infty} \le .. \le \gamma^{k+1}\|V_0 - V^*\|_{\infty} \rightarrow \infty
 $$
 
 > [!THEOREM] Value iteration convergence (cont.)
 > Moreover, if:
-> $$\|V_{i+1} - V_i\|_{\infty} \le \epsilon $$
+> $$\|V_{k+1} - V_k\|_{\infty} \le \epsilon $$
 > then:
-> $$ \|V_{i+1} - V^*\|_{\infty} < \frac{2 \epsilon \gamma}{1-\gamma}$$
-> This gives a practical stopping condition: once updates are small enough, we’re close to optimal.
+> $$ \|V_{k+1} - V^*\|_{\infty} < \frac{2 \epsilon \gamma}{1-\gamma}$$
+> This gives a practical stopping condition: once updates are small enough, we are close to the optimal.
 
-## Synchronous DP Algorithms
+## DP algorithms properties
 These algorithms update the value of **all states** in **synchronous sweeps** (i.e. in one full sweep at a time).
 
 | Problem    | Bellman Equation                                    | Algorithm                     |
@@ -1866,7 +1874,7 @@ All these algorithms are based on state-value function $V^{\pi}(s)$ or $V^*$. Th
 | -------------- | ------------------------ | ---------------------------------- |
 | $V(s)$         | $O(mn^2)$                | for $m$ actions and $n$ states     |
 | $Q(s,a)$       | $O(m^2n^2)$              | more expensive due to nested loops |
-## Efficiency of DP
+
 Finding the optimal policy using DP is **polynomial in the number of states**. 
 However, the number of states it often very large since it grows exponentially with the number of state variables (curse of dimensionality).
 
@@ -1881,20 +1889,20 @@ The MAB can be seen as a specific case of a MDP, where:
 - $\gamma = 1$, since it consider **finite time horizon**.
 - the initial state is the only state we have $\mu^0(s) = 1$.
 
-MAB are characterized by the reward:
+The reward of a MAB can be:
 - **Deterministic**: we have a single value for the reward for each arm (trivial solution).
 - **Stochastic**: the reward of an arm is drawn from a distribution which is stationary over time.
 - **Adversarial**: an adversary chooses the reward we get form an arm at a specific round, knowing the algorithm we are using to solve the problem.
 
 Common approaches in RL, also called **soft policies**:
-- **$\epsilon$-greedy algorithm**: perform the greedy action except for a small amount of time.  $$ \pi(a_i|s) = \begin{cases} 1-\epsilon & \text{if } \hat{Q}(a_i|s) = \max_{a \in \mathcal{A}} \hat{Q}(a|s)\\ \frac{\epsilon}{|\mathcal{A}-1|} & \text{otherwise} \end{cases} $$
+- **$\epsilon$-greedy algorithm**: perform the greedy action except for a small amount of time.  $$ \pi(a_i|s) = \begin{cases} 1-\epsilon + \frac{\epsilon}{|\mathcal{A}|}& \text{if } a_i = a^*\\ \frac{\epsilon}{|\mathcal{A}|-1} & \text{otherwise} \end{cases} $$
 - **softmax algorithm** (Boltzmann distribution): weights actions according to its estimated value $\hat{Q}(a|s)$. $$ \pi(a_i|s) = \frac{exp({\frac{\hat{Q}(a_i|s)}{\tau}})}{\sum_{a \in \mathcal{A}} {exp(\frac{\hat{Q}(a|s)}{\tau}})}$$
 Both algorithms **never stops**, unless we make the **exploration parameter** $\epsilon$ or $\tau$ **decay over time**. Even if these algorithms converge to the optimal choice, we do not know how much we lose during the learning process.
 They help balance **exploration and exploitation** smoothly. They ensure the agent continues to explore potentially better actions rather than getting stuck with a suboptimal greedy choice.
 
 - $\epsilon$-greedy (with constant epsilon) does not guarantee sub-linear regret in any MAB.
 - Modified $\epsilon$-greedy (with decaying epsilon) can achieve sub-linear regret.
-## MAB Setting
+## Regret
 A MAB problem is a tuple $<\mathcal{A}, \mathcal{R}>$ where $\mathcal{A}$ is the set of $N$ possible arms (choices) and $\mathcal{R}$ is a set of unknown distributions, one for each arm. 
 The reward is a random variable $r \in [0, 1]$ drawn from such distributions: $r \sim \mathcal{R}(a_i)$. The expected rewards is $R(a_i) = \mathbb{E}_{r \sim \mathcal{R}(a_i)}[r]$.
 
@@ -1912,13 +1920,21 @@ At a given time step $t$, we select action $a_{i, t}$, we observe reward $r_{a_{
 $$
 R^* - R(a_{i, t})
 $$
-### Expected Pseudo-Regret
+
+The **random regret** (a.k.a. instantaneous regret) is the actual regret:
+$$
+R_T = \sum_{t=1}^T (R^* - r_t)
+$$
+where $r_t$ is the actual reward obtained by pulling arm $a_t$ at time $t$.
+
+The **expected pseudo-regret** is:
 $$
 L_T = TR^* - \mathbb{E}[\sum_{t=1}^T R(a_{i, t})]
 $$
 where $T$ specifies the time horizon we are taking into account. 
 The expected value is taken w.r.t. the stochasticity of the reward function and the randomness of the used algorithm. 
-A good algorithm should have a regret s.t. $\frac{L_T}{T} \rightarrow 0$ for $T \rightarrow \infty$.
+A good algorithm should ha
+ve a regret s.t. $\frac{L_T}{T} \rightarrow 0$ for $T \rightarrow \infty$.
 
 > [!THEOREM] Regret lower bound for stochastic MAB
 > Given a MAB stochastic problem, **any algorithm satisfies**: 
@@ -1930,12 +1946,13 @@ A good algorithm should have a regret s.t. $\frac{L_T}{T} \rightarrow 0$ for $T 
 > - $\Delta_i := R^* - R(a_i)$ implies that the algorithm performance is determined by the similarity among arms. The more the arms are similar, the more the problem is difficult.
 > - It means that a stochastic MAB problem has a lower bound of $O(\log T)$, therefore **no algorithm can achieve a better regret bound.**
 
+## Stochastic MAB
 A stochastic MAB can have two formulation:
 - **Frequentist**: $R(a_1), .., R(a_N)$ are **unknown parameters**, and a policy selects at each time step an arm based on the observation history.
 - **Bayesian**: $R(a_1), .., R(a_N)$ are **random variables** with prior distributions $f_1, .., f_N$, and a policy selects at each time-step an arm based on the observation history and on the provided priors. 
 
 The more we are uncertain on a specific choice, the more we want the algorithm to explore that option. We might lose some value in the current round, but it might turn out that the explored action is the best one. 
-### Upper Confidence Bound Approach - Frequentist approach
+### Upper Confidence Bound - Frequentist approach
 Instead of using the empiric estimate, we consider an upper bound $U(a_i)$ over the expected value $R(a_i)$. More formally:
 $$
 U(a_i) := \hat{R}_t(a_i) + B_t (a_i) \ge R(a_i)
@@ -1992,7 +2009,7 @@ RL techniques can be:
 - **Tabular** vs. **Function Approximation**: whether states/actions are represented explicitly or through generalization (continuous space).
 - **Value-based** vs. **Policy-based** vs. **Actor-Critic**: different approaches to learning optimal behavior.
 
-RL problems can be:
+RL problems that we will consider are:
 - **Model-free prediction**: estimate the value function for a fixed policy in an unknown MRP (i.e., MDP + policy).
 - **Model-free control**: learn an optimal policy by optimizing the value function of an unknown MDP.
 ## Model-free Prediction
@@ -2030,14 +2047,13 @@ MC policy evaluation uses **empirical mean return** instead of expected return. 
 - **Every-Visit MC** has lower initial error and smoother convergence but slightly slower learning in early stages.
 - Eventually, both methods converge to similar performance, with Every-Visit slightly outperforming First-Visit asymptotically in this example.
 ### Incremental MC
-#### Incremental mean
 The mean $\hat{\mu}_1, \hat{\mu}_2, ..$ of a sequence $x_1, x_2, ..$ can be computed incrementally:
 $$
 \hat{\mu}_k = \frac{1}{k} \sum_{j=1}^k x_j = \frac{1}{k} \bigg( x_k + \sum_{j=1}^{k-1} x_j \bigg) = \frac{1}{k} (x_k + (k-1)\hat{\mu}_{k-1}) = \hat{\mu}_{k-1} + \frac{1}{k}(x_k - \hat{\mu}_{k-1})
 $$
-The new estimate can be interpreted as the previous mean plus a correction term proportional to the error on the new observation.
+The new estimate can be interpreted as the **previous mean plus a correction term** proportional to the error on the new observation.
 
-In **incremental MC**, after an episode $\{s_1, a_1, r_2, .., s_T\}$, for each state $s_t$ with return $v_t$, we can update the value function incrementally:
+In incremental MC, after an episode $\{s_1, a_1, r_2, .., s_T\}$, for each state $s_t$ with return $v_t$, we can update the value function incrementally:
 $$
 N(s_t) \leftarrow N(s_t) + 1 
 $$
@@ -2048,6 +2064,9 @@ In non-stationary problems, it is useful to track a running mean, i.e. forget ol
 $$
 V(s_t) \leftarrow V(s_t) + \alpha (v_t - V(s_t))
 $$
+
+Incremental MC keeps the core idea of Monte Carlo (learning from full returns), but improves **efficiency, memory use, and adaptability**. 
+It’s especially useful in **online, real-time settings** with long episodes or large state spaces.
 ### Stochastic Approximation of Mean
 Let $X$ be a random variable in $[0,1]$ with mean $\mu = \mathbb{E}[X]$. 
 Given a sequence of i.i.d. samples $x_1, x_2, \dots, x_n \sim X$, we can estimate $\mu$ using an **exponential (recursive) average**:
@@ -2061,15 +2080,6 @@ where $\mu_i$ is the estimate mean after observing $x_i$ and $\alpha_i$ is the s
 
 Note that step sizes $\alpha_i = \frac{1}{i}$ satisfy the above conditions. 
 In this case, the exponential average gives us the empirical mean $\hat{\mu}_n = \frac{1}{n} \sum_{i=1}^n x_i$, which is consistent according to the strong law of large numbers. 
-### Drawbacks of MC
-- **Requires full episodes**:  
-    MC learning is only possible after an episode **terminates**, limiting its use in ongoing tasks or continuing environments.
-- **Limited action exploration**:  
-    Each episode follows **one trajectory**; unlike dynamic programming, MC doesn’t consider multiple actions at each state during learning.
-- **No bootstrapping**:  
-    MC updates value estimates **only after observing the final return**, rather than using estimates from subsequent states (as in [[Machine Learning#Temporal Difference Learning|TD]] methods).
-- **State-wise independence**:  
-    The **time to update** the estimate for a state does **not depend** on the number of states in the environment. This can be both a benefit (parallelism) and a drawback (slower global convergence).
 ## Temporal Difference Learning
 TD methods learn directly from episode of experience. 
 - It is a model-free approach.
@@ -2124,12 +2134,12 @@ $$
 V(s_t) \leftarrow V(s_t) + \alpha(v_t^{n} - V(s_t))
 $$
 
-### $\lambda$-return
+### Forward-view
 Instead of picking a single $n$, TD($\lambda$) forms a **weighted average** of all $n$-steps returns, to combine information from different time-steps:
 $$
 v_t^{\lambda} = (1-\lambda)\sum_{n=1}^{\infty} \lambda^{n-1} v_t^{n}
 $$
-It is also called **forward view** since to compute it we need future rewards and states. For this reason, it can only be computed for **complete episodes**.
+It is called **forward view** since to compute it we need future rewards and states. For this reason, it can only be computed for **complete episodes**.
 The corresponding TD($\lambda$) update becomes:
 $$
 V(s_t) \leftarrow V(s_t) + \alpha(v_t^{\lambda} - V(s_t))
@@ -2140,11 +2150,11 @@ The forward view gives us an intuitive understanding of how TD($\lambda$) blends
 - MC looks all the way to the end of the episode ( $\lambda \rightarrow 1$) → unbiased, high variance.
 - TD($\lambda$) mixes all $n$-step returns with exponentially decreasing weights → balanced as it gives a smooth bias-variance trade-off controlled by $\lambda$.
 ![500](./assets/TD_weighting.png)
-### Backward-view TD($\lambda$)
+### Backward-view
 The forward view provides the theoretical foundation.
 The **backward view** provides the **mechanism**: how to efficiently compute updates **online**, step by step, without waiting for the end of the episode.
 #### Eligibility Traces
-Eligibility traces are a kind of memory mechanism that helps keep track of which past states or action are "eligible" for receiving credit (blame) when a reward is received. 
+Eligibility traces are a kind of **memory mechanism** that helps keep track of which past states or action are "eligible" for receiving credit (blame) when a reward is received. 
 They help assign credit backward through time, smoothing and speeding up learning.
 
 We can use two heuristics:
@@ -2160,7 +2170,7 @@ $$where $\gamma$ is the discount factor, $\lambda \in [0,1]$ is the trace decay 
 - Traces **decay over time** unless the state is revisited.
 - Recently and frequently visited states have **larger traces**, so they receive **larger updates**.
 
-Backward view updates every state proportionally to: the TD error $\sigma_t$ and the eligibility trace $e_t(s)$.
+Backward view updates every state proportionally to the TD error $\sigma_t$ and the eligibility trace $e_t(s)$.
 At the start of each episode we initialize $e_0(s) = 0$ (for all states $s$). For each time step $t$:
 1. Compute the TD error as $\delta_t = r_{t+1} + \gamma V(s_{t+1}) - V(s_t)$.
 2. Compute the eligibility trace (for all states $s$).
@@ -2206,7 +2216,7 @@ Model-free control can solve problems where:
 #### Generalized Policy Iteration 
 The generalized policy iteration consist in:
 - **Policy evaluation**: estimate $V^{\pi}$ (e.g. via iterative policy evaluation, MC, TD). 
-- **Policy improvement**: generate a new policy $\pi' \ge \pi$ (e.g. via greedy policy improvement). I
+- **Policy improvement**: generate a new policy $\pi' \ge \pi$ (e.g. via greedy policy improvement). 
 	- It can be done over $V(s)$, but it requires model of MDP: $$ \pi'(s) = arg \max_{a \in \mathcal{A}} \bigg\{R(s, a) + \gamma \sum_{s' \in \mathcal{S}} P(s'|s, a)V(s') \bigg\} $$
 	- It can be done over action-values $Q(s, a)$, which is model-free: $$ \pi'(s) = arg \max_{a \in \mathcal{A}} Q(s, a) $$
 #### $\epsilon$-greedy policy
@@ -2347,7 +2357,7 @@ It is proven to converge under GLIE conditions.
 
 | SARSA                                                                         | $Q$-learning                                                                                 |
 | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Is an **on-policy** algorithm (learns the behavior it follows).               | Is an **off-policy** algorithm (learns the optimal policy).                                  |
+| **On-policy** algorithm (learns the behavior it follows).                     | **Off-policy** algorithm (learns the optimal policy).                                        |
 | Learns from the **action actually taken**, including exploratory ones.        | Learns from the **greedy (optimal) action**, regardless of actual behavior.                  |
 | **Exploration affects the updates**: risky behavior is reflected in learning. | **Exploration does not affect updates**: assumes greedy behavior policy is greedy (optimal). |
 | More **conservative and safe** in stochastic or risky environments.           | Can be **overoptimistic** in uncertain environments.                                         |
