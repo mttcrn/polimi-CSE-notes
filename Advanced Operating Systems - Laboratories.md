@@ -1,4 +1,4 @@
-e# Lab0: "Hello world!"
+# Lab0: "Hello world!"
 The goal of the lab is to get used with `aos-mini-linux`, learn how to write, load and unload a module. 
 ```c
 #include <linux/module.h> // manages module
@@ -932,3 +932,6 @@ rmmod <module name>
 what is missing into the pdf: 
 INIT_LIST_HEAD(&entry->list);
 RCU-aware list manipulation
+IRQ verion spinlock
+IRQ flags at creation time
+workqueue instantiation? 

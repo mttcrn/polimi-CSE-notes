@@ -5,7 +5,7 @@ Human language is:
 - Varied: thousands of different languages spoken around the world. 
 # Text Data
 NLP mainly deals with text data, but also semi-structured data (like html), programming code, relational (tabular) data, biological sequences, binary data, audio data, images & video. 
-NLP, aka text mining, is the process of working with and extracting useful knowledge from textual data. 
+NLP, aka **text mining**, is the process of working with and extracting useful knowledge from textual data. 
 NLP concerns the computational analysis, interpretation and production of natural language in either written or spoken form.
 
 NLP techniques are regular expressions, vector space representation & text classification, text retrieval and clustering, word embedding based representations, language models for text generation, seq2seq models & transformers, dialog systems (task-oriented and retrieval-augmented chatbots), LLMs, audio aspects (speech-to-text & text-to-speech).
@@ -47,10 +47,10 @@ Some languages use space between words which allow for space-based tokenization,
 Moreover, we can't blindly remove punctuation (ex. titles, prices, dates, URLs, hashtags, email addresses, ..) and we may deal with clitics, words that don't stand on their own. 
 Many languages, such as Chinese, do not use spaces to separate words, so deciding where the token boundaries are can be difficult. It is common to threat each character as a token.
 
-Instead of white-space segmentation or single-character segmentation we can:
+Instead of **white-space** segmentation or **single-character** segmentation we can:
 - use the data to tell us how to tokenize.
-- use a sub-word tokenization which is useful for splitting up longer words and for allowing the ML model to learn explicitly the morphology of the language. 
-- use byte-pair encoding.
+- use a **sub-word** tokenization which is useful for splitting up longer words and for allowing the ML model to learn explicitly the morphology of the language. 
+- use **byte-pair encoding**.
 
 Certain tasks require sentences to be segmented. A common algorithm is to tokenize and then use rules or ML to classify a period as either a part of the word or a sentence-boundary.
 ## Text Normalization
@@ -73,10 +73,10 @@ It refers to the analysis of structure of words.
 Morphemes can be composed with morphological rules, which restricts the ordering of morphemes, and orthographic rules, aka 'spelling-rules' or 'two-level rules'.
 Dealing with complex morphology is necessary for many languages. 
 ### Lemmatization vs. Stemming
-**Lemmatization** consists in representing all words as their lemma, their shared root. 
-**Stemming** consists in a simple algorithm that reduces terms to stems, chopping off affixes crudely. It is often used in text retrieval to reduce computational requirements. The Porter Stemming Algorithm is a set of rewriting rules, simple but error prone since it can cause many collisions (different words, same stems).
+**Stemming** consists in a simple algorithm that reduces terms to stems, chopping off affixes. It is often used in text retrieval to reduce computational requirements. The **Porter Stemming Algorithm** is a set of rewriting rules, simple but error prone since it can cause many collisions (different words, same stems).
 
-Lemmatization is a more sophisticated NLP technique while stemming is a simple algorithm that applies rules to extract word stems. 
+**Lemmatization** consists in representing all words as their lemma, their shared root. It is a more sophisticated NLP technique while stemming is a simple algorithm that applies rules to extract word stems. 
+
 In text retrieval to prevent vocabulary mismatch between query and document, usually perform stemming (or lemmatization) before adding terms to the index. 
 ### Stopword removal
 Stopwords are just more frequent terms in language which convey very little information about the topic of the text. 
@@ -110,7 +110,6 @@ RE are patterns that allow us to search within text document for specific sequen
 RExp provide a powerful language for writing rules to extract content from text documents. 
 - Advantages: simplicity of approach, rules can be made precise to reduce the number of false positives. 
 - Limitations: extraction rules must (usually) be written by hand, some false positives are usually present due to insufficiency of syntactic structure, often many false negatives due to the fact that rule is not general enough, hard to integrate knowledge of context around extracted entity.
-
 # Text Classification
 ## Some Machine Learning Concepts
 ML consists in a set of techniques aimed to make machines "act more intelligent" by generalizing from past data to predict the future data. 

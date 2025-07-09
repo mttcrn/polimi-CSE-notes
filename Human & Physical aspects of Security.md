@@ -1,6 +1,6 @@
 # Threat Modeling
 Security can be seen as solving the objective of "obtaining a goal against an adversary".
-It is achievable trough:
+It is achievable through:
 - **Policies**, the goals/objectives that the system should enforce.
 - **Threat Model**, a set of assumptions on the adversary.
 - **Mechanisms**, all the measures that ensures the policies are followed as long as the threat model is correct.
@@ -100,7 +100,7 @@ The acronym stands for:
 - **Denial of service**: in (cyber)security it is the threat that aims at absorbing/consuming resources a to deny a service from working/reaching the user. It is always physical, with infinite resources it will not happen. 
   It is a threat against **availability**.
 	- At the core of information system there are running process: it is sufficient to stop a process to deny the service. 
-	  DoS can be implemented trough crashing the target or exhausting it. **Crashing** it is heavily dependent on the specific implementation vulnerabilities. **Exhausting** computation may be done through requesting unbalanced tasks to the server (e.g., video processing, encryption/decryption routines, ..).
+	  DoS can be implemented through crashing the target or exhausting it. **Crashing** it is heavily dependent on the specific implementation vulnerabilities. **Exhausting** computation may be done through requesting unbalanced tasks to the server (e.g., video processing, encryption/decryption routines, ..).
 	- Zip bombs may also aim at exhaust computation, but most commonly just exhaust disk storage.
 	- Fork bombs work similarly to Zip bombs, a program forks infinitely to exhaust PIDs.
 	- **Network exhaustion** is performed either through **amplification** factors or crashes. Some examples are smurfs, ping of death, land attacks, amplification hell. Networks are highly insecure. 
@@ -153,7 +153,7 @@ The problem is that too many attack trees for a single system are needed, plus a
 Still they present an interesting overview of all the necessary/possible steps to achieve an attack goal.
 ![](./assets/attack_tree.png)
 
-### Mitigating Threats
+## Mitigating Threats
 - **Top-Down Approach**: start with a system-wide view, then analyze components. This ensures all potential threats are considered.
 - **Breadth-First**: evaluate all threats at a given level before diving into lower layers. Unmitigated threats at higher layers are often more critical.
 - **Threat-Mitigation Hierarchy**: every mitigation introduces new attack vectors, requiring additional defenses.
@@ -195,11 +195,10 @@ More specifically, it is a category of attacks/techniques to obtain specific goa
 | Denial of Service       | 🔴 Uncommon as primary goal<br>SE typically aims for access, not service disruption, though it can be a side effect (e.g., triggering account lockouts).                            |
 | Elevation of Privileges | 🟢 Highly relevant<br>Core to many SE attacks, especially when using **confused deputy** tactics (e.g., tricking a privileged user or system into acting on the attacker’s behalf). |
 Social engineering attacks often span multiple STRIDE categories, but are primarily concerned with **deception-based privilege escalation** and **unauthorized access.**
-## Structuring SE
+## SE principles
 The term social engineering has evolved significantly over time, but its core mechanisms remain consistent.
 
-The first use of the term is found in book titled “An Efficient Remedy for the Distress of
-Nations”, where it referred to the **role of policy planners** who needed to understand and influence **mass behavior** in both domestic and international affairs.
+The first use of the term is found in book titled “An Efficient Remedy for the Distress of Nations”, where it referred to the **role of policy planners** who needed to understand and influence **mass behavior** in both domestic and international affairs.
 
 Throughout the 19th and 20th centuries, the meaning of the term was that of being an **engineer of social contexts** and **of people**, that understands the behavior of the system given an input, and can predict an output.
 
@@ -225,29 +224,27 @@ Wrong assumptions lead the victim to build an incorrect model of the environment
 ## SE attacks vectors
 ![](./assets/social_engineering.png)
 ### Phishing
-SE approach trough **text** (e.g. mails, text messages, comments on social media platforms, ..). It is vastly the most common vector. 
+SE approach through **text** (e.g. mails, text messages, comments on social media platforms, ..). It is vastly the most common vector. 
 Objectives vary: financial fraud, information theft, coercion/blackmail/extortion, malware delivery. 
 Implementation means are email, instant messaging services, social media chats.
 Common attacks are **spear phishing**, which target always the same category of people (it is called whaling for important people) or **angler phishing**, which the interaction starts from the victim in order to increase the trust. 
 Assumptions to play on (spoofing options) are logos, message structure copying, email send field or actual sender spoofing, impersonating on social media or using stolen accounts. 
 ### Vishing 
-SE approach trough **voice** (e.g.. calls, VoIP or voice over IP, voice messages).
+SE approach through **voice** (e.g.. calls, VoIP or voice over IP, voice messages).
 Most common attack goals are to obtain information or convince the victim to perform an action. 
-Assumptions to play on are spoofing caller-ID trough VoIP, spoofing caller's name or instant messaging call options.
+Assumptions to play on are spoofing caller-ID through VoIP, spoofing caller's name or instant messaging call options.
 Some countermeasures are technologically (may be implemented by the phone provider) and education/awareness (e.g., teach to call back instead).
 ### Impersonation
-SE approach trough **physical approach** so it require physical presence.
+SE approach through **physical approach** so it require physical presence.
 Most common goal is to access premises. 
 Common attacks are shoulder surfing and piggybacking/tailgating.
 Assumptions to play on (spoofing options) are wearing ad-hoc clothes, playing on the access level you already obtained or copying access credential. 
 Some countermeasures are perimeter security and/or personnel education. 
 
-### Comparison
-
 | Technique         | Pros                                                                                                                                    | Cons                                                                                                    | Countermeasures                                                 |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **Phishing**      | - Scalable (mass delivery, parallelizable)<br>- Easy automation<br>- Harder to trace<br>- Can bypass technical barrier with social cues | - Spam filters and user awareness can easily defect them<br>- Requires convincing design                | Email filtering, spoofing protection (SPF/DKIM), user awareness |
-| **Vishing**       | - Real-time interaction<br>- Can pressure or confuse target<br>- Less likely to be flagged by software                                  | - Requires live interaction<br>- More time-consuming<br>- Easier to report (trough recording)           | Caller ID verification, telecom-level filters, user awareness   |
+| **Vishing**       | - Can pressure or confuse target<br>- Less likely to be flagged by software                                                             | - Requires live interaction<br>- More time-consuming<br>- Easier to report (through recording)          | Caller ID verification, telecom-level filters, user awareness   |
 | **Impersonation** | - Direct access to secure environments<br>- May bypass digital controls entirely<br>- Allows more control on the attack                 | - High-risk for attacker<br>- Requires physical presence and preparation<br>- Can be easily interrupted | Badge systems, mantraps, personnel awareness, uniform policy    |
 
 ## Building Blocks of a SE attack
@@ -282,7 +279,7 @@ One of the most important aspects of a social engineering attack is to **build t
 2. Know how far to go: ensure to answer who are you, what do you want, are you a threat, how long will this take.
 3. Getting support for pretexting: look the part, bring your tools, know your stuff.
 4. Executing the pretext: practice, stretch, communicate, learn how to build a rapport, given the medium that you will use. 
-### Influencing tactics
+### Influence tactics
 Principles of influence are:
 - **Reciprocity**:
   Similar to "altruism". 
@@ -310,7 +307,7 @@ Principles of influence are:
   Hence, if an attacker manage to make the victim like him/her, they’ll be more prone to help you the attacker or accommodate his/her requests.
   [Cialdini](https://www.scirp.org/reference/referencespapers?referenceid=1108133) presents the example of Tupperware parties, where instead of having a salesman invite people to gatherings, the process involved a “host” (e.g., friend or neighbor) inviting people to their home for a party.
 - **Social Proof**:
-  If you don’t know what to do, act like you belong. When people are unsure how to behave in a situation, they tend to look to others for cues. This psychological principle suggests that if others act as though something is normal or acceptable, individuals are more likely to follow suit.
+  If you don’t know what to do, act like you belong. When people are unsure how to behave in a situation, they tend to look to others for cues. This psychological principle suggests that if others act as something is normal or acceptable, individuals are more likely to follow.
   In social engineering, you may have a partner participating in the same interaction before with the victim, or build up a claim that you did that interaction with many people before and it went well.
 - **Fear**:
   It is an effective tactic due to two main effects:
@@ -362,9 +359,7 @@ The recipient’s MTA server can check, upon receiving an email, if the sender w
    If the SPF check passes, the email proceeds to further authentication checks (like [[Human & Physical aspects of Security#Domain Keys Identified Mail (DKIM)|DKIM]] and [[Human & Physical aspects of Security#Domain-based Message Authentication, Reporting & Conformance (DMARC)|DMARC]]) before being delivered to the inbox.
 
 However, the sender shown inside the body of the email does not need to be the same as the actual email address!
-Since the end user is a human the attacker does not need to authenticate. If the human
-makes the wrong assumption on what they are looking at, assuming it is authenticated,
-they will not detect the attack.
+Since the end user is a human the attacker does not need to authenticate. If the human makes the wrong assumption on what they are looking at, assuming it is authenticated, they will not detect the attack.
 
 A **malicious MTA** (Mail Transfer Agent) is an email server that is intentionally set up or misconfigured to facilitate spam, phishing, email spoofing, or malware distribution. It operates similarly to legitimate MTAs but is used by attackers for harmful purposes.
 ### Domain Keys Identified Mail (DKIM)
@@ -372,15 +367,14 @@ DKIM works by **digitally signing emails using a cryptographic key**, allowing t
 While SPF validates the sender's MTA IP addresses, DKIM uses **asymmetric key pairs** to sign part of an email (specific headers like from, subject, date, ..).
 
 Advantages:
-- It signs part of the email content, in addition to enduring that the sender is whitelisted. 
-  With **SPF**, there is **NO distinction between users** under the same domain. The MTA is assumed to be the only authorized sender, and its IP address is inserted in the SPF authorization list. 
-  This provide message integrity and domain authentication. 
+- It signs part of the email content, in addition to enduring that the sender is whitelisted. This provide message integrity and domain authentication. 
+- With **SPF**, there is **NO distinction between users** under the same domain. In **DKIM** it is possible to **assign different keys per user/service**, enforcing a distinction between users.  
 - The sending MTA holds the private key, not the user, lowering the chance of being stolen.
 Disadvantages:
 - It **does not encrypt** the email DATA content, so if an attacker manages to obtain data in transit it can change the content. 
 ### Domain-based Message Authentication, Reporting & Conformance (DMARC)
 It is meant to solve the issues of SPF and DKIM by building on top of them. It tells receiving mail servers what to do when SPF and/or DKIM fail to authenticate a message.
-The simple intuition is to ensure that the sender's domain address in the email aligns with the authenticated domain: enforcing that SPF or DKIM must pass and align.
+The simple intuition is to ensure that the sender's domain address in the email aligns with the authenticated domain: enforcing that SPF and DKIM must pass and align.
 
 Domain owners publish a **DMARC policy** in their DNS records that tells receiving mail servers what to do with emails that fails the authentication checks.
 
@@ -416,7 +410,7 @@ While STRIDE is not fully functional for physical security, as it was originally
   It is the unauthorized interference with or alteration of equipment or assets.
   It is the most pervasive attack. It means to "touch or make changes to something when you should not, especially when this is illegal". Common devices that block access to something are often not meant to stop an indefinitely long attack. 
 - **Repudiation**: 
-  In physical security contexts, repudiation involves the attacker's ability to deny having performed an action, particularly when access logs or histories are incomplete.
+  In physical security contexts, repudiation involves the attacker's ability to deny having performed an action, particularly when access logs or historian are incomplete.
   It is meaningful only if there is history of events. It is particularly relevant since the attacker needs to be physically present within the premises. 
 - **Information Disclosure**.
   While often seen as a digital threat, in a physical context it involves the unauthorized exposure of sensitive information through physical media or environments.
@@ -431,7 +425,7 @@ While STRIDE is not fully functional for physical security, as it was originally
 **Authentication** and **authorization**, plus **detection** can prevent/detect these threats:
 - **Perimeter design**: understand what are the requirements and capabilities derived from being in a zone and define the boundaries of that zone, then ensure that those are "defendable".
 - **Access control**: authenticate each way to get inside, potentially with different access levels.
-- **Surveillance**: beginning of "detection system", someone directly or indirectly checking relevant locations. One may "force" its way trough an access control zone (e.g. picking a lock, breaking a wall, killing the guard). We want to detect/prevent the attackers to obtain access trough recognition. 
+- **Surveillance**: beginning of "detection system", someone directly or indirectly checking relevant locations. One may "force" its way through an access control zone (e.g. picking a lock, breaking a wall, killing the guard). We want to detect/prevent the attackers to obtain access through recognition. 
 ## The Security Defense Chain
 In short: Deter, Delay, Detect, Respond.
 
@@ -483,7 +477,7 @@ The command needs to be sent through an **insecure channel** by definition.
 #### Single code: basic replay attacks
 The key and the car share a **symmetric key**. The secret key is used to generate always the **same message**. Upon pressing the key button, the key generates and sends the message. 
 
-This is exploitable trough **sniffing**: the attacker, being in the general vicinity of the key or car, it can sniff the message and replay it at will. 
+This is exploitable through **sniffing**: the attacker, being in the general vicinity of the key or car, it can sniff the message and replay it at will. 
 ![](./assets/replay_attack.png)
 #### Rolling code: jam and replay attack
 The key and car share a **secret key** and a **seed**, and both have a **counter**. The message is an hash of key, seed and counter. 
@@ -578,8 +572,7 @@ Note that if designed only for safety, it may be bypassed while if designed for 
 ### Sensor Layer
 A device that detects or measures a physical property and converts it to an analog or digital signal. 
 Sensors can be active (they generate the stimulus that they successively read, such as radars) or passive (accept external physical stimuli, such as a thermocouple).
-A sensor receives in input a stimulus from a measurand (the quantity that the sensor
-intends to measure).
+A sensor receives in input a stimulus from a measurand (the quantity that the sensor intends to measure).
 ![600](./assets/sensor.png)
 - The transducer produces an electrical representation of the measurand by measuring the stimulus (e.g. a photoresistor transducer decreases its electric resistance as photons hit its surface).
 - Analog signal processing (e.g. amplifier and filters) are meant to increase the amplitude of the perceived signal and remove noise.
@@ -604,6 +597,7 @@ Another examples is to use audio to disrupt drone operations by tampering with i
 - Randomization of active sensors probing to make spoofing easier to detect. 
 - Verifying that the sensor responds correctly to a certain input.
 - Detect out-of-band signals.
+
 **Prevention** countermeasures: aim to make attacks physically or logically harder.
 - Shielding the sensor through “physical” barriers, or through limiting the spatial/temporal/spectral surface.
 - Filtering the analog signal before ADC to block signals outside the expected frequency range. 
@@ -611,20 +605,18 @@ Another examples is to use audio to disrupt drone operations by tampering with i
 - Randomization of active sensors probing, which prevents the attacker from predicting the characteristics of outgoing signals.
 - Sensor fusion: combine data from multiple sensors types. Spoofing all simultaneously is significantly harder.
 #### Transmission attacks
-Attacks that modify, create, or delete digital sensor data once the conversion has been
-executed, either during transmission or storage (takes place after the sensor has collected the data).
+Attacks that modify, create, or delete digital sensor data once the conversion has been executed, either during transmission or storage (takes place after the sensor has collected the data).
 Not directly related to the sensor per-se, we will discuss them in other layers (e.g., network).
 ### Computation Layer
 The attacks are based on firmware and software vulnerabilities:
 - **Application layer vulnerabilities**: lack of authentication is a more common problem than one would expect.
 - **Unpatched firmware vulnerabilities**: lack of software updates for goods that are old and not serviced anymore.
-- **Insecure firmware updates**: over-the-Air software updates are not always well authenticated.
+- **Insecure firmware updates**: over-the-air software updates are not always well authenticated.
 - **Supply chain attacks**: given the critical infrastructure in which they are used, it is not to exclude that vulnerabilities / backdoors may be implemented by the supplier or through the supply chain.
 
 Malicious firmware are critical since they can hijack the device's behavior, bypass safety mechanisms, provide persistent access for attackers and remain undetected even after resets.
 
-The most effective countermeasures is to **validate firmware before executing** it. When a firmware update is applied, it must prove its authenticity by being digitally signed by the trusted author.
-. To do so, the system require:
+The most effective countermeasures is to **validate firmware before executing** it. When a firmware update is applied, it must prove its authenticity by being digitally signed by the trusted author. To do so, the system require:
 - A pair of public-private keys. 
 - A **root-of-trust bootloader** and a secure storage for the public key:
 	- It can be stored in ROM, Trusted Execution Environment (TEE), or Hardware Security Modules (HSMs).
@@ -632,6 +624,7 @@ The most effective countermeasures is to **validate firmware before executing** 
 	- It can support single- or multi-stage secure boot processes.
 - An **offline key sharing process**. 
 ![](./assets/secure_boot_sw_updates.png)
+
 In **single-stage secure boot**, a minimal, immutable bootloader directly validates the firmware signature at power-up and either executes or rejects it. It's simple and secure, but lacks flexibility and extensibility: updating the key would require replacing the hardware. 
 
 In **multi-stage secure boot**, rather than verifying the main firmware in a single step, it builds a **chain of trust**, where each stage verifies the next before handing over control. So, we can update the trusted public key,  as long as the new keys are signed by an already trusted one.
@@ -674,12 +667,14 @@ Safety Measures in smart vehicles are:
 - Emergency call.
 - Overhead & night vision.
 - Intersection and blind-spot scanning.
+
 Then, there are comfort and other in-vehicle features (not to ensure security):
 - Cabled, Wi-Fi and Bluetooth phone communication.
 - Adaptive cruise control.
 - Personalized driving settings.
 - Navigation systems.
 - Entertainment systems (e.g., games).
+
 In-vehicle technologies:
 - Sensors.
 - On-board networks (e.g. Controller Area Network (CAN), Ethernet, Local Interconnection Network (LIN), FlexRay which is a Brake-by-Wire system).
@@ -751,6 +746,7 @@ Each unit can be in one of the following state:
 - **Error active**: the unit is fully operational.
 - **Error passive**: the unit is still operational but with limited communication capability. It cannot transmit active error frames but only passive ones.
 - **Bus off**: the unit is disconnected from the CAN bus and cannot participate in communication.
+
 Each unit maintains two error counter, **transmit** and **receive**, which increases by 8 every time an error occurs:
 - when any counter reaches 128 the unit goes into error passive state.
 - when the transmit error counter reaches 256, the unit shuts down the CAN controller. 
@@ -791,7 +787,7 @@ The attacker can **silence a critical ECU**, preventing it from transmitting ess
 - This attack can enforce DoS, with a **ransomware** attack: the attacker could demand a ransom in exchange for ceasing the DoS attack or restoring normal ECU functionality.
 - It is also able to **evade intrusion detection systems** by silencing compromised ECUs to prevent detection. 
 
-The main limitation is that **physical access is required**: some possible mitigations are implementing access controls, securing physical entry points, and deploying encryption/authentication at critical nodes can reduce the risk.
+The main limitation is that **physical access is required**: some possible mitigations are  implementing access controls, securing physical entry points, and deploying encryption/authentication at critical nodes.
 ## Intrusion Detection
 It involve monitoring network traffic to **identify anomalies** that indicate potential attacks. Typically, a limited number of devices are deployed to read and analyze network traffic for inconsistencies. IDS can be categorized as follows:
 1. **Frequency based** IDs:
@@ -847,9 +843,10 @@ Due to computational and bandwidth constraints, authentication is **typically re
 
 **[NXP’s TJA115x](https://www.nxp.com/products/interfaces/can-transceivers/secure-can-transceivers:SECURE-CAN)** series is a family of **secure CAN transceivers** designed to enhance security in automotive networks. These transceivers integrate security mechanisms directly into the CAN interface, providing an additional layer of protection against CAN-based attacks.
 #### Application and Diagnostic Protocols
-**OBD-II** (On-Board Diagnostics II) is a standardized diagnostic system widely used in modern vehicles to monitor and report the status of various vehicle subsystems. It is a critical part of the application layer in automotive networks. It is mandatory in many countries. 
+**OBD-II** (On-Board Diagnostics II) is a standardized port primary used for diagnostic in modern vehicles: it monitor and report the status of various vehicle subsystems. It is a critical part of the application layer in automotive networks. It is mandatory in many countries. 
 
-**Unified Diagnostic Services** (UDS) extends diagnostic protocols. It is a request-response protocol: the diagnostic tool sends a request to an ECU (authenticating if necessary), and the ECU replies with diagnostic information or executes operation like resets, updates, or self-tests.
+**Unified Diagnostic Services** (UDS) is a standardize protocol used for vehicle diagnostics and communication over the OBD-II interface (or other vehicle networks).
+It is a request-response protocol: the diagnostic tool sends a request to an ECU (authenticating if necessary), and the ECU replies with diagnostic information or executes operation like resets, updates, or self-tests.
 
 ![](./assets/UDS-ids.png)
 UDS is nowadays present in all autonomous vehicle.
@@ -891,19 +888,19 @@ Design/Training can be executed through experts, by defining **rules**, collect 
 ### Detection
 The system detects deviations from normal behavior or matches known attacks signature. 
 - The **monitoring** needs to be done in **real-time**, or measures to maintain the freshness of the evaluated data are necessary.
-- The system needs to evaluate the same features found in training. 
-About the performance:
-- Evaluating real-world effectiveness of an intrusion detection system (IDS) before deployment is challenging.
-- False positives can be problematic, especially if they trigger automated responses or alerts. 
-- Some IDSs claim near-perfect detection rates, but these claims may not hold up in diverse or dynamic environments.
+- The system needs to evaluate the same features found in training
 
 Detection can occurs in different places: 
 - **Host-based**: monitor activities **on a single host**, and checks for system logs, file changes, application activity, and/or resource usage. Commonly used for malware detection. Usually software running with some privileges.
 - **Network-based**: monitor activities based **on one or multiple networks**. Commonly analyze frequency and flow of packets, payload content, or protocol compliance. Either implemented **on strategic nodes** such as routers and switches, or connected as a standalone hardware component.
 
-Commonly, in OT/CPS, network-based IDSs are more common to avoid deployment on
-resource-constrained hosts with non-identical firmware and software.
+Commonly, in OT/CPS, network-based IDSs are more common to avoid deployment on resource-constrained hosts with non-identical firmware and software.
 ### Evaluation
+About the performance:
+- Evaluating real-world effectiveness of an intrusion detection system (IDS) before deployment is challenging.
+- False positives can be problematic, especially if they trigger automated responses or alerts. 
+- Some IDSs claim near-perfect detection rates, but these claims may not hold up in diverse or dynamic environments.
+
 The confusion matrix is commonly used for evaluating ML performances. If we have unbalanced classes, as it is often the case in intrusion detection, it can be misleading.
 Relevant metrics:
 $$Accuracy = \frac{TP + TN}{TP + TN + FP + FN}$$
@@ -918,11 +915,11 @@ F1_{score} = \frac{2}{\frac{1}{Rec} + \frac{1}{Pre}}
 $$
 ## Intrusion detection approaches
 ### Physical Layer Detection
-Identifying anomalies in the **communication medium** (e.g., electrical signals, radio frequencies, timing). The features and methods are highly dependent on the specific physical layer. 
+Identifying anomalies in the **communication medium** (e.g., electrical signals, radio frequencies, timing). The features and methods are highly dependent on the specific physical layer.
 
 A common approach **fingerprinting devices** based on unique physical traits, to verify whether the message originates from the expected hardware.
 
-Note that it can **detect unauthorized devices**, but it cannot determine whether an authorized device is sending malicious data.  
+Note that it can **detect unauthorized devices**, but it cannot determine whether an authorized device is sending malicious data.
 ### Packet Flow-Based Detection
 Attempts to recognize patterns and behaviors focusing on the **sequence periodicity**, and flow of packets.
 
@@ -983,12 +980,12 @@ Ideally, the data flow follows:
 - **Bottom-up approach** where sensors and control systems report status and performance up to the business layer. 
 
 The 6 layers are:
-0. **Field**.
-1. **Control**.
-2. **Supervisory**.
-3. **Production Planning**.
-4. **On-site Enterprise**.
-5. **Enterprise**. 
+1. . **Field**.
+2. **Control**.
+3. **Supervisory**.
+4. **Production Planning**.
+5. **On-site Enterprise**.
+6. **Enterprise**. 
 This division allow us to identify the most relevant security measures given the logical and physical division of tasks.
 ### Perimeter and IT network (5&4)
 Level 5 (enterprise) includes the global enterprise systems, such as administration tools, management ERPs and mail or web services (if on premise). It is typically **located outside the industrial site** (e.g., in data centers or cloud environment).
@@ -1009,7 +1006,7 @@ Network security constraints:
 ### Industrial Production Planning (3)
 It is the highest industrial layer, containing historians, SCADA servers, industrial workstations, and potentially security-related servers.
 Level 3 (production planning) has multiple tasks, not hierarchically ordered. Therefore, this layer's networks should be divided by scope, hardening the access to the particularly critical ones (e.g., security).
-At this layer, IDSs for ICS protocols start to be effective.
+At this layer, IDSs for Industrial Control Systems (ICS) protocols start to be effective.
 ### Industrial Network to Lower Levels (3&2)
 Interaction with Level 2 (supervisory control) is done only through **jump hosts**, a dedicated and monitored server.
 Communication to/from the jump host can be implemented physically (via a dedicated interface) or logically (e.g., through a Level 4 firewall). Regardless of implementation, only remote SCADA/ICS access to Level 2 processes is allowed.
