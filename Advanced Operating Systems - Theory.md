@@ -12,22 +12,23 @@ The goal of an OS are:
 			- **Efficiency**: minimize the resources used by the scheduler itself and optimize CPU usage reducing context switching overhead.
 			- **Priority**: relative importance or urgency of processes.
 			- **Deadlines**: meet time constraints for time-sensitive operations like real-time tasks like multimedia playback or similar.
-			Note that OS scheduling strategies are **balancing conflicting goals** like deadlines and fairness: there is NO universal scheduling policy. 
-			- **General-Purpose OSs** (GPOS): balance throughput, fairness. They operates on best-effort basis, so there are no guarantees about fair resource allocation. High priority tasks usually get preference over low priority ones. They are designed to handle diverse workloads efficiently: sometimes deadlines might be missed.
-			- **Real-Time OSs** (RTOS): weights more deadlines and priority. When a higher priority thread becomes available it is immediately given control. Rate Monotonic scheduling given higher priority to tasks with shorter periods, while Earliest Deadline First prioritizes tasks with the nearest deadline. 
+		Note that OS scheduling strategies are **balancing conflicting goals** like deadlines and fairness: there is NO universal scheduling policy. 
 - **Isolation and Protection**:
-    - Regulates access rights to resources (e.g., memory) to prevent conflicts and unauthorized data access. This isolation is achieved through **memory virtualization**, where each program operates in its own virtual memory space but might share common portions in a protected way. 
+    - Regulates access rights to resources to prevent conflicts and unauthorized data access. 
+    - Isolation is achieved through **memory virtualization**, where each program operates in its own virtual memory space but might share common portions in a protected way. 
       Virtual address space does NOT coincide with the actual physical memory usage: it does only contain the most recently used parts of it, while the remaining are stored in mass storage. 
       Paging is used to make physical memory appear abundant to processes. 
     - Enforces **data access rights** (e.g., file permissions).
     - Ensure **mutual exclusion** when needed thorough mechanism like locks and semaphores. 
 - **Portability of Applications**:
-    - Uses interface/implementation abstractions to hide HW complexity to applications (**facade pattern**, simpler interface to complex systems e.g., system calls). 
+	- It uses the **facade pattern**: it provides a simpler interface to complex systems (e.g., system calls). 
+    - Uses interface/implementation abstractions to hide HW complexity to applications.
     - Ensures applications work on different systems with varying physical resources.
     - In Linux, this ensures that source code for user space application does not need updating when compiling for a newer kernel version. 
 - **Extensibility**:
+	-  It uses the **bridge pattern**: it decouples abstraction from actual implementation (e.g., file system). Thanks to it, we can add new interfaces or implementations without modifying the ones already present. 
     - Creates uniform interfaces for lower layers, allowing reuse of upper layers (e.g., device drivers).
-    - Hides complexity associated with different peripheral variants (**bridge pattern**, it avoid compile-time binding between an abstraction and its implementation, which is selected at run-time e.g., file system).
+    - Hides complexity associated with different peripheral variants.
     - This allows programs to interact consistently with standard interface components, regardless of the underlying implementation. 
 
 | Name                                                      | Target (Goal)                                                                                                                                                  |
@@ -38,12 +39,22 @@ The goal of an OS are:
 | `EEVDF` - Earlier Eligible Virtual Deadline First         | Earliest eligible deadline.                                                                                                                                    |
 | `MLFQ` - Multi Level Feedback Queues                      | Optimize reponse time by allowing tasks to consume their entire time slice, improving fairness by boosting lower-priority task occasionally                    |
 | `MQ-Deadline`                                             | Prioritizes read operations over write operations considering their deadline. It ensures that write operations are handled efficiently without causing delays. |
+- **General-Purpose OSs** (GPOS): 
+	- Balance **throughput**, **fairness**. 
+	- Operates on best-effort basis, so there are no guarantees about fair resource allocation. 
+	- High priority tasks usually get preference over low priority ones. 
+	- Designed to handle **diverse workloads** efficiently. 
+	- Sometimes deadlines might be missed.
+- **Real-Time OSs** (RTOS): 
+	- Weights more **deadlines** and **priority**. 
+	- When a higher priority thread becomes available it is immediately given control. 
+	- Rate Monotonic scheduling given higher priority to tasks with shorter periods, while Earliest Deadline First prioritizes tasks with the nearest deadline. 
 
 A **system call** is a way to ask for a privileged service: applications invoke kernel to do privileged operations (e.g., I/O operations). In Linux, each system call has a `syscall_number` (unique identifier) and `syscall_function()` (actual function that get executed).
 
 Other patterns are commonly used in OSs:
-- **Chain of responsibility**: pass request along chain of handlers, each handler decides either to process the request or pass it to the next one.
-- **Command pattern**: turn a request into a standalone object that contains all information (e.g., I/O block request).
+- **Chain of responsibility**: pass request along chain of handlers, each handler decides either to process the request or pass it to the next one (e.g. `handle_mm_fault()`).
+- **Command pattern**: turn a request into a standalone object that contains all information (e.g., I/O block request, `bio` structure).
 ## Architectures of OSs 
 
 The design of operating systems can encompass various architectural approaches, each with its unique characteristics:
@@ -60,17 +71,18 @@ The design of operating systems can encompass various architectural approaches, 
     - Minimal core kernel components.
     - External modules for additional services. Modules can be dynamically linked on demand, at run-time (without requiring system reboot). 
     - Easy extension of OS capabilities as new requirements emerge.
+    - A single bug (even in modules) can crash the entire system. 
 - **Microkernel**:
 	- A single small kernel provides minimal process, memory management and communication via message passing.
 	- All non essential components are implemented as processes in user-space. This imply easier maintenance and new software does not require rebooting.
+	- Certain services (e.g., network stack, filesystem) run in kernel space while device drivers typically run in user space.
 	- A crash of a system process does not mean a crash of the entire system: stability and security are enhanced. 
 -  **Hybrid**:
-    - Combines micro-kernel design with additional in-kernel code to increase performance. 
-    - Certain services (e.g., network stack, filesystem) run in kernel space while device drivers typically run in user space.
+    - Combines advantages of monolithic kernel with modules and microkernel.  
     - It allows on-demand capability without recompiling the whole kernel for new drives or sub-systems. 
     - The downside is that more interfaces increase the chance of bugs and security issues. 
 - **Library OS** and **Unikernels**:
-    - Services are provided via libraries compiled with the application and configuration code. 
+    - In Library OS services are provided via libraries compiled with the application.
     - An Unikernel is a specialized, single address space, machine image that can be deployed to cloud or embedded environments (RTOSes). There is no need for privilege transitions between user and kernel space, minimizing scheduler overhead, 
 
 Each architecture offers different benefits and trade-offs, influencing the performance, stability, and complexity of the OS and the applications it supports. The choice of architecture depends on the specific requirements of the system it's designed to run on.
@@ -110,21 +122,30 @@ The `WQ_FLAG_EXCLUSIVE` flag indicates that only one task (among those with the 
 `fork()` is a system call in Linux used to create a new process. It invokes `sys_clone()` which duplicates the current process, known as the **parent**, to create a **child** process. 
 The new `task_struct` is a copy of the parent one, which only differs in the PID (which is unique), the PPID (parent PID) and certain resources (such as pending signals).
 Rather than duplicate the address space, the parent and the child share a single copy using **Copy-On-Write** (COW) mechanism.
+![[start_kernel.png]]
 
 The `start_kernel()`, found in `init/main.c` is the entry point for the Linux kernel. It executes a series of early architecture specific setup routines (e.g., `setup_arch`, `mem_init`, `shed_init`, ..). 
-Then `arch_call_rest_init()` is invoked, which transition to `rest_init()` which places the CPU into idle loop and creates a new kernel threads that run `kernel_init()` which is responsible for loading the initial RAM disk image using `initrd_load`.
-Then `kernel_execve()` function executes `/bin/init` which is the **init task**, tagged with PID 1. It initializes long-running services, mounts hard drives, perform system cleanups, and more. The init process is special: if it exits or crashes, the system will panic or shut down. 
+Then `arch_call_rest_init()` is invoked, which transition to `rest_init()` which places the CPU into **idle loop** and creates a new kernel threads that run `kernel_init()` which is responsible for loading the **initial RAM** disk image using `initrd_load`.
+Then `kernel_execve()` function executes `/bin/init` which is the **init task**, tagged with PID 1. 
 
-- **System V** init process stets tasks in motion sequentially during system startup, leading to longer startup times due to its single-threaded nature. It defines various levels (e.g., lvl1 for single-user mode, lvl3 for multi-user mode). The init task read from `/etc/inittab` action to take with their respective commands `id:rl:action:command`.
-- **System D** provide a more efficient and parallelizable alternative to system V init process. It is based on units, plain text files that encode information about services, sockets, devices and mounts. The most common types of unit are `.services` files which encode details about processes that system D controls, and allow specifying dependencies to ensure everything start in the right order.  System D also offers **systemctl**, a command-line tool for querying and controlling the system D system and service manager. System D is a **declarative environment**.  
+The init process initializes **long-running services**, **mounts hard drives**, perform **system cleanups**, and more. If it exits or crashes, the system will panic or shut down. 
+The init process have two implementation:
+- **System V** sets tasks sequentially during system startup, leading to longer startup times due to its single-threaded nature. 
+  It read from `/etc/inittab` to determine the correct predefined **run-level** (e.g., lvl1 for single-user mode, lvl3 for multi-user mode without networking, lvl5 includes a graphical interface). 
+  For each run-level, there are directories that contains **init scripts**, which are run in order. 
+- **System D** provide a more efficient and parallelizable alternative to system V init process. 
+  It is based on **units**, plain text files that encode information about services, sockets, devices and mounts ( e.g., `.services` files). Units allow specifying dependencies to ensure everything start in the right order.  System D also offers **systemctl**, a command-line tool for querying and controlling the system D system and service manager. System D is a **declarative environment**.  
 # Scheduling
 The scheduler is responsible for determining the order in which tasks are executed. 
 A **context switch** occurs when the CPU switches from executing one process or thread to another. This is a fundamental operation in multitasking systems, handled by the scheduler.
+
 The `preempt_count` field in each task's `task_struct` tracks whether **preemption is currently allowed**.
 - If `preempt_count > 0`, **preemption is disabled**.
 - If `preempt_count == 0`, the task is **preemptible**.
+
 The kernel **increments `preempt_count`** in critical sections (e.g., while holding a spinlock) to **avoid being preempted**, and decrements it afterward. Only when it reaches zero can a context switch occur.
 The actual **low-level context switch** is performed by the architecture-specific macro or function `switch_to(prev, next)`.
+
 It does:
 1. **Saves the CPU context** of the current task (e.g., registers, stack pointer, ..).
 2. **Loads the context** of the `next` task.
@@ -133,13 +154,13 @@ It does:
 A scheduling class is an API that includes policy-specific code to update current task time statistics, pick the next task from queue, select the core on which the task must be enqueue and put the task to that queue. 
 In Linux, individual policies are `SCHED_DEADLINE`, `SCHED_FIFO`, `SCHED_RR`, `SCHED_NORMAL`, `SCHED_BATCH` and `SCHED_IDLE`. 
 
-| Scheduling Class   | Description                                                                    | Scheduling Algorithm              | Type of Target Processes |
-| ------------------ | ------------------------------------------------------------------------------ | --------------------------------- | ------------------------ |
-| **SCHED_DEADLINE** | Deadline-based                                                                 | (EDF) Earliest Deadline First     | Real-time                |
-| **SCHED_FIFO**     | Soft real‑time processes, continue to run until higher priority task is ready. | First-In-First-Out                | Real-time                |
-| **SCHED_RR**       | Share with timeslice                                                           | Round-Robin                       | Real-time                |
-| **SCHED_NORMAL**   | Variable-priority                                                              | Completely Fair Scheduler (CFS)   | Not real-time            |
-| **SCHED_BATCH**    | Low-priority                                                                   | CFS with idle task prioritization | Not real-time            |
+| Scheduling Class   | Description                                                                                                                                 | Scheduling Algorithm              | Type of Target Processes |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------- | ------------------------ |
+| **SCHED_DEADLINE** | Deadline-based                                                                                                                              | (EDF) Earliest Deadline First     | Real-time                |
+| **SCHED_FIFO**     | Soft real‑time processes, continue to run until preempted by a higher priority task or when blocked.                                        | First-In-First-Out                | Real-time                |
+| **SCHED_RR**       | Processes with same priority uses CPU in a circular manner. Once each process consumes its timeslice, it is placed at the end of the queue. | Round-Robin                       | Real-time                |
+| **SCHED_NORMAL**   | Variable-priority                                                                                                                           | Completely Fair Scheduler (CFS)   | Not real-time            |
+| **SCHED_BATCH**    | Low-priority but CPU-intensive.                                                                                                             | CFS with idle task prioritization | Not real-time            |
 
 Each process has a priority $\pi$.
 - **Real-time processes**: $\pi \in[0,99]$. They belong to scheduling class `SCHED_FIFO` or `SCHED_RR` or `SCHED_DEADLINE`($\pi = 0$). The priority is known as `rt_priority`.
@@ -152,33 +173,34 @@ It might seem counterintuitive, but within the Linux kernel's scheduling system,
 
 The central data structure of the core scheduler if the `runqueue`. Within the `runqueue` we have sub-queues like `cfs_rq`, `rt_rq` and `dl_rq` for different scheduling classes. 
 Each CPU has its own `runqueue`, but it is possible to have multiple `runqueues` on a CPU by using task groups (**cgroups**).
-Linux scheduler executes in a loop, iterating through scheduling classes: each class `pick_next_task()` method is called with the `runqueue` of the CPU it is running as its argument, In case no class yields a runnable task, the next pointer of the scheduling class is followed, stepping down to the next priority class.
+Linux scheduler executes in a loop, **iterating through scheduling classes**: each class `pick_next_task()` method is called with the `runqueue` of the CPU it is running as its argument. In case the higher priority class does not yields a runnable task, we step down to the next scheduling class. If NO class has a runnable process, the CPU goes idle. 
 ## Completely Fair Scheduling (CFS)
-CFS attempts to balance a process's virtual runtime with a simple rule: CFS **picks the process with the smallest `vruntime`**, which represents the time a task should run on the CPU.
+CFS attempts to balance a process's virtual runtime with a simple rule: CFS **picks the process with the smallest `vruntime`**, which represents the time a task has already spent on the CPU taking into account its nice value. 
 CFS uses a red-black tree to find the task with the smallest `vruntime` efficiently.
 If here're no runnable processes, CFS schedules the idle task. 
 
 In Linux, the transition from the $O(1)$ scheduler to the CFS marked a significant evolution in process scheduling, emphasizing fairness and dynamic adaptability.
 The $O(1)$ scheduler offered quick scheduling decisions but struggled with **fair CPU time distribution**, especially for long-running tasks. This was due to its reliance on fixed timeslices, which could lead to task starvation.
 
-For each process $p$, its time-slice is computed as:
+For each process $p$, its **time-slice** is computed as:
 $$
 \tau_{p}=f(\nu_{0},\ldots,\nu_{p},\ldots,\nu_{n-1},\bar{\tau},\mu)\sim max(\frac{\lambda_{p}\bar{\tau}}{\sum\lambda_{i}},\mu)
 $$
 where:
-- $\lambda_p$ it the process **weight**, which depends on the nice value according to the exponential formula $\lambda_i=k\times b^{-\nu_i}$. The proportional weight is set against the total weight of all processes. `sched_prio_to_weights` table provide lambda values. 
-- $\overline{\tau}$ is the schedule latency, a configurable parameter (default 6 ms) that represent the targeted time for each process to get a chance to run.
+- $\lambda_p$ it the process **weight**, which depends on the nice value according to the exponential formula $\lambda_i=k\times b^{-\nu_i}$ (with $k$, $b$ fixed valued). `sched_prio_to_weights` table provide lambda values. 
+- $\overline{\tau}$ is the **schedule latency**, a configurable parameter (default 6 ms) that represent the maximum time to execute all runnable processes. 
 - $\mu$ is the **minimum granularity** (default 0.75 ms) to ensure a lower bound on the timeslice, preventing excessive preemption. 
 The `sched_slice()` function can retrieve $\tau_p$.
 
-CFS introduces the `vruntime` variable $\rho$ as an absolute measure of the dynamic priority of each process. It gives a way to compare process CPU usage when they have different priorities. Processes with lover $\rho$ are given priority. 
+CFS introduces the `vruntime` variable $\rho$ to give a way to compare process CPU usage when they have **different priorities**. Processes with lover $\rho$ are given priority. 
 $\rho_p$ depends on the time $\epsilon_p$ the process has consumed, and it is inversely proportional to its weight $\lambda_p$.
 $$
 \forall p , \Delta \rho = \frac{\tau_p}{\lambda_p} = \frac{\overline{\tau}\lambda_p}{\lambda_p \sum \lambda_i} = \frac{\overline{\tau}}{\sum \lambda_i}
 $$
 $\Delta \rho_p$ at the end of the scheduling latency only depends on the total weight of all runnable process. Thus, any process can be fairly evaluated regardless of its individual priority. 
 
-CFS ensure fair CPU time allocation for processes using the nice value, but it does not handle **latency requirements** well (some processes needs quick access to the CPU but do not require much time). Moreover, real-time processes are privileged.
+CFS ensure fair CPU time allocation for processes, but it does not handle **latency requirements** well (some processes needs quick access to the CPU but do not require much time). 
+Moreover, real-time processes are privileged.
 ## Enforcing additional fairness
 ### Cgroups
 CFS alone is not enough to guarantee optimal CPU usage, especially when there are multiple threads from different user: for example, if user `A` with 2 threads and user `B` with $98$ threads, user `A` will only be given 2% of the CPU time, which is not ideal. Each user should be given an equal share of the CPU, which is then divided among their threads.
@@ -191,34 +213,36 @@ The idea is to define $\gamma_{i, q}$ as the CPU usage of process $i$ on runqueu
 $$\Omega_p = \sum_i \lambda_{i, q} \times \gamma_{i,q}$$
 In this way we account for both CPU usage and priority of threads.
 
-**Load balancing** depends on the hierarchical layout of processor cores, caches and memory. In NUMA architecture, memory access cost differ based on the distance from the requesting node. For this reason, load balancers must ensure that threads and related memory access remains local to their domains within the hierarchy.
-A **scheduling domain** collects processor units in groups that share certain HW properties. Each scheduling domain has a logic to determine when and where move a task to balance the load and a **designated core**, which performs load balancing (hierarchy is typically seen relative to this core): it periodically attempts to migrate tasks from overloaded CPUs or domains to underutilized ones.
+**Load balancing** depends on the hierarchical layout of processor cores, caches and memory. In NUMA architecture, memory access cost differ based on the distance from the requesting node. 
+For this reason, load balancers must ensure that threads and related memory access remains local to their domains within the hierarchy.
+A **scheduling domain** collects CPUs in groups that are "similar" in the context of balancing. Each scheduling domain has a logic to determine when and where move a task to balance the load and a **designated core**, which performs load balancing (hierarchy is typically seen relative to this core): it periodically attempts to migrate tasks from overloaded CPUs or domains to underutilized ones.
 ## Deadline scheduler
-It uses 3 parameters: runtime, period and deadline. Each task is given a specific runtime within every period: the runtime must be the worst-case scenario, commonly the period equals the deadline. The task must finish before its deadline. 
+The **Earliest Deadline First** (EDF) scheduler uses 3 parameters: **runtime**, **period** and **deadline**. 
+Each task is given a specific runtime within every period: the runtime must be the worst-case scenario.
+Commonly the period equals the deadline: in this way we do not have overlapping of tasks and predictable behavior. 
+The task must finish before its deadline. 
 
-Constant bandwidth scheduling was added to ensure temporal isolation. If a task uses more time than needed, it is accelerated, preventing interference with other tasks. 
+**Constant Bandwidth Scheduling** (CBS) is a technique to ensure **temporal isolation**:
+- if a task consumes more CPU time than its runtime, it is **delayed** to prevent interference with other tasks.
+- **greedy reclaiming** allows tasks to use more bandwidth sporadically when possible (when the CPU is idle).
 
 ![[map.proc.jpg]]
 
 # Linux Kernel Space Concurrency  
-**Kernel concurrency** is a critical aspect of Linux kernel development, distinct from user space concurrency. It involves managing and synchronizing multiple threads within the **kernel space**. This includes:
-- **Interrupts**: handling asynchronous events that can occur at almost any time.
-- **Kernel Preemption**: allowing for the interruption of kernel tasks to enhance system responsiveness and multitasking capabilities.
+**Kernel concurrency** is a critical aspect of Linux kernel development, distinct from user space concurrency. It involves managing and synchronizing multiple threads within the **kernel space**. 
+This includes:
+- **Interrupts**: handling asynchronous events that can occur at almost any time. Interrupts are signals that cause the CPU to stops its current activities and execute a specific segment of code, disrupting the normal flow of execution. This asynchronous behavior can introduce concurrency challenges.
+- **Kernel Preemption**: allowing for the interruption of kernel tasks to enhance system responsiveness and multitasking capabilities. 
+  It enables **higher responsiveness** as the system can switch tasks even when a process is executing in kernel mode. Widely used in RTOSes where response time is critical.
 - **Multiple Processors**: ensuring the kernel's ability to run on multi-processor systems, which introduces complexities in resource sharing and synchronization.
 
 Regarding concurrency we can highlights:
 - **Deadlock** between tasks: due to mutual exclusion, hold-and-wait, no preemption, and circular wait conditions.
 - **Priority inversion** is a scheduling scenario where a high priority task is delayed by a lower priority task due to locking.
 
-Interrupts are signals that cause the CPU to stops its current activities and execute a specific segment of code, disrupting the normal flow of execution. This asynchronous behavior can introduce concurrency challenges because interrupts handles tun independently of the main program flow. 
-
-In a **preemptive kernel**, the kernel allows a process to be preempted while it is running in kernel mode: this means that the kernel can interrupt a process to give CPU time to another process.
-
-This enables higher responsiveness as the system can switch tasks even when a process is executing in kernel mode. Widely used in RTOSes where response time is critical.
-
 From Linux kernel version 2.6 onward, the kernel became optionally preemptive. **Preemption points** in the kernel include:
 1. If a task in the kernel explicitly calls `schedule()` (**planned process switch**). It is always assumed that the code that explicitly calls `schedule()` knows it is safe to reschedule. 
-2. When an interrupt handler exits, before returning to kernel-space, the kernel sets `TIF_NEED_RESCHED` flag in the current thread's descriptor to indicate that the scheduler needs to run (**forced process switch**). 
+2. When returning to kernel-space from user-space, the kernel checks `TIF_NEED_RESCHED` flag, if equal to 1 it schedule another task  (**forced process switch**). 
 
 **Atomic context** refers to places in Linux source code where preeemption is not safe to do. Typical atomic contexts are when:
 - the kernel is within an interrupt handler. 
@@ -233,16 +257,15 @@ To enable atomic context (i.e. disable preemption) we use `preempt_disable()` ma
 ## The real-time patch - PREEMPT-RT
 In the **PREEMPT-RT patched kernel**, critical sections and interrupt handlers become preemptible. This ensures that critical sections do not monopolize the CPU. 
 
-**Threaded interrupt handlers** are kernel thread scheduled with `SCHED_FIFO`policy, which operates at a real-time priority level of 50. For real-time threads that must avoid interruption, set their `SCHED_FIFO` priority to a value higher than 50. 
+Interrupt handlers becomes **threaded interrupt handlers**, which are kernel thread scheduled with `SCHED_FIFO`policy, which operates at a real-time priority level of 50. For real-time threads that must avoid interruption, set their `SCHED_FIFO` priority to a value higher than 50. 
 
 The HW interrupt handler is designed to perform minimal tasks: it must activate the kernel thread responsible for processing the interrupt reducing the time the system spends in the interrupt context, thus improving response time. 
-
-Synchronization mechanism in PREEMPT-RT context: 
+# Linux Synchronization
+Synchronization mechanism are: 
 - **Mutexes** & **semaphores**: used in process context for mutual exclusion.
 - **Spinlocks**: used in interrupt handlers and atomic context to protect shared kernel data structures without sleeping. 
 - **Read-write locks**: used when we have frequent read operations and fewer writes. 
 - **Seqlocks**: used in situations with high read concurrency and infrequent writes, allowing readers to access data without blocking. 
-# Linux Synchronization
 ## Locking
 ### Sleeping locks
 Sleeping locks, also called semaphores, when a task operating inside the kernel tries to acquire the lock which is unavailable, the semaphore place the task on a waitqueue putting it to sleep.
@@ -269,7 +292,6 @@ Variants of spinning locks are:
 - **Seqlocks**: to prevent starvation of writers, a counter starting from 0 is used to track the number of writers holding the lock. Each writer increments the counter both at locking/unlocking phase. The counter permits to determine if any writes are currently in progress: if the counter is **even** **no writes** are taking place, if the counter is **odd** a **write** is taking place. 
   Similarly readers check the counter when trying to lock: if the counter is odd, it means busy wait. If even the reader does the work but before releasing, it checks if the counter changed (in case it reads again). 
   `jiffies` is the variable that stores a Linux machine's uptime, is frequently read but written rarely by the timer interrupt handler: a seqlock is used for machines that do not have atomic 64 bit read.
-
 ### Cache aware spinlocks - MCS locks
 In **multi-processor context**, caching may introduce unwanted overhead in managing the lock causing the **cache ping-pong problem**. 
 The problem works as follow:
@@ -285,6 +307,7 @@ To solve this continuous invalidation problem, Mellor-Crummey and Scott proposed
 We have two primary structures:
 - `qspinlock` structure which contains a boolean field `taken` and a pointer to another structure `msc_lock` called last.
 - `msc_lock` structure for each CPU, which has a boolean field `locked` and a pointer to another `msc_lock` called next.
+
 When CPU1 acquire the lock, it writes down the address of its own `mcs_lock` in the last field of `qspinlock` and set `taken = 1`.
 CPU2, seeing that the lock is taken, put itself in line by writing the next pointer of the current last element (which is CPU1) towards its own `mcs_lock`, stores the address of its own `mcs_lock` in the last pointer of `qspinlock` and set its own `locked = 1` (it spins on this bit). 
 When CPU1 finishes, it tries to put a null value in `qspinlock` last field, expecting to find its own structure but find the one of CPU2. So, it set CPU2 `locked = 0`. 
@@ -332,7 +355,7 @@ In Linux kernel, RCU is widely used (e.g., managing network routes, file system 
 ## Memory consistency models
 Memory models define how memory operations in one thread are seen by others in a multiprocessor environment. Different models have varying levels of order enforcement and visibility, influencing how multi-threaded programs behave and are synchronized. 
 
-The order in which memory accesses are seen by another thread might be different from the order in the issuing thread, due to **write buffering**, **speculation** and **cache coherencey**. 
+The order in which memory accesses are seen by another thread might be different from the order in the issuing thread, due to **write buffering**, **speculation** and **cache coherency**. 
 Each model may have difference possible execution traces. A weaker model has more potential traces. 
 ## HW models
 ### Sequential consistency
@@ -348,72 +371,69 @@ Used in x86 intel processors, it uses a local **write queue** (also called **sto
 When a processor issue a read, it checks the most recent buffered write to that address, if there is none it access the shared memory. A processor's read cannot access other processors write queues, it will always view its own writes before others.
 Once a write operation is completed and the data reaches the shared memory, it becomes visible to all processors. 
 
-The system has instructions to flush the store buffer, and a set of atomic instructions implemented through the use of a global HW lock L (that automatically flush the buffer). 
+Intel x86 architecture has instructions to flush the store buffer, implemented through the use of a global HW lock L. 
 ### Partial Store Order (PSO)
 Used in ARM processors. It is weaker than TSO. 
 We can assume that each processor reads from and writes to its own complete copy of memory. Each write propagates to the other processors independently, with reordering allowed. 
 This means that **a store can bypass another store**: stores can occur out of order.
 However, writes to the same address are not allowed to bypass each other.
 
+Since store can occur out-of-order, this complicates lock-free programming since the program behavior depends on thread timing. 
+
 > [!TIP] Litmus test
 >  Programs that tell us whether one system is either complying with one model. 
-
-Since store can occur out-of-order, this complicates lock-free programming since the program behavior depends on thread timing. 
 ## Taming the HW
-A **data-race** between threads is produced by at least one write and zero or more reads, which may produce inconsistent behavior. 
-
-A **synchronization model** is a set of rules for how HW coordinates r/w to shared data. 
-
-A **data-race-free** (DRF) **synchronization model** should provide memory operations to ensure happens-before relationship for memory r/w across different threads. Under this model, ordinary r/w can be reordered within threads, but cannot cross memory synchronization operations. 
-
-A **data-race-free program** is such that two ordinary memory accesses to the same location from different threads are either both reads or else separated by synchronization operations forcing one to happen before the other. 
-
-If the HW supports DRF synchronization model, a DRF program will appear as it is executed on a sequential consistent machine. 
+- A **data-race** between threads is produced by at least one write and zero or more reads, which may produce inconsistent behavior. 
+- A **synchronization model** is a set of rules for how HW coordinates r/w to shared data. 
+- A **data-race-free** (DRF) **synchronization model** should provide memory operations to ensure happens-before relationship for memory r/w across different threads. Under this model, ordinary r/w can be reordered within threads, but cannot cross memory synchronization operations. 
+- A **data-race-free program** is such that two ordinary memory accesses to the same location from different threads are either both reads or else separated by synchronization operations forcing one to happen before the other. 
+  If the HW supports DRF synchronization model, a DRF program will appear as it is executed on a sequential consistent machine. 
 
 **Fences** (**barriers**) are trivial synchronization instructions that allow to obtain DRF programs. They enforce program order $<_p$ into memory order $<_m$. It restricts processors and compilers from employing necessary optimizations, resulting in degraded performance. They enforce order both above and below. 
 
 - **Performance consideration**: overuse of fences can lead to performance degradation as they restrict the processor's ability to reorder instructions for efficient execution.
 - **Strategic placement**: it's crucial to strategically place fences where necessary, rather than using them indiscriminately, to balance correctness and performance.
 
-The C compiler can introduce additional reordering of instruction that might appear as if the machine had a weaker memory model. This adds another layer of complexity to HW memory models. 
-The primitives `READ_ONCE` and `WRITE_ONCE` prevent the compiler from reordering reads (or writes), omitting reads (for known values, i.e. fusing) or doing too many reads (when register spilling is needed, i.e. splitting). Without these primitives, compilers can reorder them, omit reads if value appear unchanged or insert excessive reads due to register spills. 
-
 The Linux memory model is essentially PSO. 
 It uses a bi-directional synchronization mechanism which establish a happens-before relationships across threads: 
-`smp_load_acquire()`: ensures that all preceding reads and writes by the releasing threads become visible to other threads, so before it writes data to memory, all its prior operations are pushed to visibility for others. 
-`smp_store_release()`: ensures that read operation sees the latest value before any other operation occur subsequently.
+`smp_load_acquire(&x)`: ensures that any operations get anticipated before this read.
+`smp_store_release(&x, val)`: ensures that all preceding reads and writes become visible.
+
+The C compiler can introduce additional reordering of instruction that might appear as if the machine had a weaker memory model. This adds another layer of complexity to HW memory models. 
+The primitives `READ_ONCE` and `WRITE_ONCE` prevent the compiler from reordering reads (or writes), omitting reads (for known values, i.e. fusing) or doing too many reads (when register spilling is needed, i.e. splitting). Without these primitives, compilers can reorder them, omit reads if value appear unchanged or insert excessive reads due to register spills.
 
 
 ![[map.conc.jpg]]
 
 # Virtual Address Space
-Virtual memory creates the perception of a larger memory space, even when physical memory is limited: a computer can overcome memory shortages by temporarily moving data from RAM to disk storage. 
+Virtual memory creates the illusion of a larger memory space, even when physical memory is limited: we overcome memory shortages by temporarily moving data from RAM to disk storage. 
 ![[kernel_virtual_memory.png]]
 
 ## Process address space
 Process Address Space is the range of addressable memory for each process which includes text (code), data, heap, and stack segments.
 ![[process_addr_space.png]]
-**Virtual Memory Areas** (VMA) defines the range of virtual addresses utilized by a process thus they help determine whether a virtual page number is valid even if it's not currently mapped. They facilitate efficient data retrieval for pages not currently mapped. They maintain information about the corresponding data source, whether on disk or in existing memory pages. 
-They ensure **secure access** through permission flag: readable, writable, executable.
+The process address space is divided into **Virtual Memory Areas** (VMA) which are contiguous regions of virtual addresses. They maintain information about the corresponding data source, whether on disk or in existing memory pages. They ensure **secure access** through permission flag: readable, writable, executable.
 
 VMAs can be **anonymous**, if they are not linked to any file (e.g., heap, stack, bss, ..), or **file-backed**. Anonymous areas initially map to a zero page and employ **Copy-On-Write** (COW) if written. The stack is unique with its `VMA_GROWSDOWN` flag. 
 VMA can be created explicitly using `mmap()` with the backing store file descriptor and protection flag.
 
 `smem` list various processes physical memory usage with their Unique Set Size (USS, indicates memory solely used by a process, not share), Proportional Set Size (PSS, indicates shared memory) and Resident Set Size (RSS, entire memory set in physical RAM).
 
-**Paging** is a memory management scheme that eliminates the need for contiguous allocation of physical memory. It allows the physical address space of a process to be non-contiguous.
-A **page fault** occurs when the CPU accesses a virtual address whose corresponding **Page Table Entry** (PTE) is invalid or does not allow the attempted access according to the access right of the page table. 
-These rights are, in principle, derived from the access rights specified in the VMAs. However, translation of VMA access right to PTE's ones is not trivial due to:
+VMAs cover a range of pages (fixed dimension, generally 4KB). 
+**Paging** eliminates the need for contiguous allocation of physical memory.
+A **page fault** occurs when the CPU accesses a virtual address whose corresponding **Page Table Entry** (PTE, contains data about mapped pages in memory) is invalid or does not allow the attempted access according to the access right. These rights are, in principle, derived from the access rights specified in the VMAs. However, translation of VMA access right to PTE's ones is not trivial due to:
 - **Demand paging**: pages are loaded into memory only when they are accessed, not all at once.
 - **COW mechanism**: optimizes memory usage by sharing pages between processes until a write occur.
 
-The motivation behind those two mechanism is that processes do not address all the addresses in their address space. 
-Segmentation faults occur when the kernel cannot handle a page fault, usually due to an invalid memory access (when address lacks proper mapping or permission).
+The motivation behind those two mechanism is that processes do not address all the addresses in their address space: for this reasons it makes sense to delay their allocation or to share them for as long as possible. 
+
+**Segmentation faults** occur when the kernel cannot handle a page fault, usually due to an invalid memory access (when address lacks proper mapping or permission).
 
 Linux uses red-black tree structure to manage VMAs. VMAs are not overlapping. `find_vma()` navigates this structure using the `vm_end` values. 
+VMAs help determine whether a virtual page number is valid even if it's not currently mapped. 
 
-- When a process tries to access an address that falls within a VMA but lacks a PTE, the entry is configured by `handle_mm_fault()`.
-- This function delegates the work to lower-level functions like `handle_pte_fault()`, which checks the type of fault and decides how to handle it.
+When a process tries to access an address that falls within a VMA but lacks a PTE, the entry is configured by `handle_mm_fault()`.
+ This function delegates the work to lower-level functions like `handle_pte_fault()`, which checks the type of fault and decides how to handle it.
 	- If the fault is due to a read or write to an anonymous page, it calls `do_anonymous_page()`, which allocates a new physical page and maps it into the process's page table.
 	- If the fault is due to a write and the memory is writable according to the VMA but the page is marked as read-only, it calls `do_wp_page()` to create a copy of the page for the process. 
 ## Kernel address space
@@ -425,8 +445,11 @@ Allocation is made using :
 
 **Kernel Virtual Addresses** are not directly mapped to physical memory. They are helpful in situations where the kernel needs to allocate large buffers but can't find a continuous block of physical memory. Allocation is made using `vmalloc`.
 
-In the kernel, fixed-size data structures are frequently allocated and released: when small objects are allocated from full pages, **internal fragmentation** becomes a significant concern.
-The **buddy allocator** aims to reduce the need for splitting large free memory blocks when smaller requests are made. 
+In the kernel, we can have two problems memory-related: 
+- **internal fragmentation**, when small objects are allocated from full pages.
+- external fragmentation, when we need contiguous memory to allocate a big object, but we do not have it so we have to split the object.
+
+The **buddy allocator** aims to reduce the external fragmentation. 
 The buddy algorithm works as follow:
 - It works by dividing memory into blocks of various sizes, which are powers of 2. When a request for memory is made, the buddy allocator finds the smallest block that will satisfy the request. If a block is larger than needed, it's split into "**buddies**."
 - **Allocation**: the kernel checks the free lists starting from the requested block size up to larger sizes. If a free block of the requested size is available, it is allocated immediately. Otherwise, a larger free block is split into two equal “buddy” blocks; one half is allocated to satisfy the request, and the other half is returned to the appropriate free list.
@@ -434,7 +457,7 @@ The buddy algorithm works as follow:
 
 Allocating and freeing data structures is one of the most common operations inside any kernel. The buddy allocator, while efficient for larger allocations, is not ideal for these smaller structures due to potential internal fragmentation and the need for synchronization via locks, causing potential bottlenecks under heavy load. 
 To address these limitations, Linux employs additional mechanisms:
-- **Quicklist**: avoids unnecessary overhead in managing paging-related allocations caching frequently used pages. 
+- **Quicklist**: allow the kernel to quickly recycle memory blocks by caching frequently used pages related to paging allocations, avoiding unnecessary overhead from repeatedly returning memory to the lower-level allocator (like the buddy allocator). 
 - **Slab allocator**: more efficient for fixed-size allocation patterns, reducing fragmentation and minimizing lock contention. 
   It pre-allocates memory in chunks (**slabs**). When an object of that type is needed, it can be quickly allocated from a pre-existing slab, reducing the overhead of frequent allocations. 
   It provides two main classes of caches:
@@ -488,6 +511,7 @@ PFRA is based on the **Corbato's clock** algorithm. It keeps a circular list of 
 - The algorithm uses a **"clock hand"** that scans the list of pages:
     - If the **R bit is 1**, the page has been recently used so the algorithm **clears the bit to 0** and moves the hand forward.
     - If the **R bit is 0**, the page is considered **not recently used**, and it is **evicted** (freed or swapped out).
+
 This approach approximates **Least Recently Used** (LRU) behavior without the overhead of tracking exact access times. 
 
 The actual Linux implementation is more complex, since it uses a two-list variant of the Clock algorithm.
@@ -521,7 +545,7 @@ I/O operations are done through loads and stores to **memory mapped registers**,
 ## Device to CPU communication
 - **Polling**: CPU constantly checks the status of devices. While simple, it is inefficient as it consumes significant CPU resources. It is inexpensive if the device is fast.
 - **HW interrupts**: the OS issue a request to the device, putting the calling process to sleep and context switch to another task, when the device has finished it raise a hardware interrupt causing the CPU to jump at a predetermined **Interrupt Service Routine** (ISR) that is an interrupt handler. It is useful for slow devices. In fast devices can cause a livelock. 
-- **Direct Memory Access** (DMA): involves using a DMA controller that independently manages data transfers between different devices and memory. It does so without needing the CPU's involvement, thereby **decoupling** it from the transfer process.
+- **Direct Memory Access** (DMA): involves using a **DMA controller** that independently manages data transfers between different devices and memory. It does so without needing the CPU's involvement, thereby **decoupling** it from the transfer process.
 # Low-level I/O
 Before reading and writing data to peripheral registers, Linux drivers needs to request access to the devices: `request_region` to access I/O port and `request_mem_region` to do memory-mapped I/O.
 Port-based I/O is accessed through special instruction like `INB` and `OUTB`.
@@ -529,8 +553,7 @@ In memory-mapped I/O the address of peripherals must be mapped in the virtual ad
 We can abstract by using an `iportmap` call and then using generic `ioread` and `iowrite` functions.
 ## Interrupts management
 Each interrupt is associated with a specific number (vector). The **Interrupt Descriptor Table** (IDT) in Linux contains handlers (ISR) for all vectors.  
-ISR is a low-level architecture specific entry point that saves the CPU state and then calls the generic `do_IRQ()` routine.
-The routine identifies the source of interrupt and dispatches the appropriate device-specific interrupt handler.
+ISR is a low-level architecture specific entry point that saves the CPU state and then calls the generic `do_IRQ()` routine, which identifies the source of interrupt and dispatches the appropriate device-specific interrupt handler.
 
 In Linux, the concept of "**deferring work**" involves postponing the execution of a task until a later time. The idea is to move the non-critical management of interrupts to a later time (improve responsiveness and benefit from aggregation).
 Interrupts are spitted into:
@@ -538,8 +561,8 @@ Interrupts are spitted into:
 - Bottom half: finalize the work specified **reconciliation point**. 
 
 > [!TIP] Reetrancy
-> Reentrancy is a property of code that allows it to be **safely called again** before its previous execution is complete. 
-> - Reetrant code does not rely on shared data, it uses local variables of enrues exclusive access to shared resources.
+> Reetrancy is a property of code that allows it to be **safely called again** before its previous execution is complete. 
+> - Reetrant code does not rely on shared data, it uses local variables.
 > - Non-reetrant code uses static or global variable without proper synchronization and relies on a state that may be altered.
 
 Three methods are available for deferring work.
@@ -551,7 +574,7 @@ Same type of SoftIRQs can run simultaneously on several processors and for this 
 Once the last interrupt handler completes, the system invokes `do_softirq()`which handles any deferred work. 
 ### Tasklets
  They offer an easier interface: they are just a type of SoftIRQ with an interface that allow to create them **dynamically**. 
- Kernel ensures that NO more than one is running, so they ensure non-reetrancy. **One-shot** deferral scheme. 
+ Kernel ensures that NO more than one is running, so they must be non-reetrant. **One-shot** deferral scheme. 
 
 A tasklet is a pointer to a function and some additional data. It is represented by a list of  `tasklet_struct`.
 During reconciliation points, the kernel cheeks this list for any scheduled tasklets that are not currently running on another CPU, and switches them to a running state. 
@@ -563,11 +586,11 @@ They accommodate deferred tasks that may need to **sleep** or **wait** for resou
 # Linux Device Management
 Linux categorizes devices based on their type and function into:
 
-|               | Chatacter device                                                                                                                                                                                                  | Block device                                                                                                                           | Network device                                                                                             |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Functionality | Operate with a stream of characters, accessed one at a time, so they do **not use buffering**.<br>Interaction with these devices is immediate, making them ideal for hardware that requires prompt data transfer. | Organized in blocks for **random access**, employing **buffering** and **caching**. <br>Suitable for large data storage and retrieval. | Handle data packet transmission and reception over network interfaces, critical for network communication. |
-| Access        | Via special files in `/dev/`.                                                                                                                                                                                     | Through special files in `/dev/`.<br>Any block can be access regardless of its location on the device.                                 | Managed through network configuration tools, not directly via `/dev/`.                                     |
-| Examples      | Serial ports, keyboards, terminal devices.                                                                                                                                                                        | Hard drives, SSDs, USB drives.                                                                                                         | Ethernet adapters, wireless interfaces.                                                                    |
+|               | Chatacter device                                                                                                                                                                            | Block device                                                                                                                           | Network device                                                                                             |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Functionality | Operate with a stream of characters, accessed one at a time, so they do **not use buffering**.<br>Immediate interaction, making them ideal for hardware that requires prompt data transfer. | Organized in blocks for **random access**, employing **buffering** and **caching**. <br>Suitable for large data storage and retrieval. | Handle data packet transmission and reception over network interfaces, critical for network communication. |
+| Access        | Via special files in `/dev/`.                                                                                                                                                               | Through special files in `/dev/`.<br>Any block can be access regardless of its location on the device.                                 | Managed through network configuration tools, not directly via `/dev/`.                                     |
+| Examples      | Serial ports, keyboards, terminal devices.                                                                                                                                                  | Hard drives, SSDs, USB drives.                                                                                                         | Ethernet adapters, wireless interfaces.                                                                    |
 
 Linux integrates devices into the file system as special files: each device is assigned a path name, typically located in the `/dev` directory. 
 
@@ -575,7 +598,7 @@ Drivers bridge the gap between kernels and user space.
 When we read from a device node, the kernel moves the data stream collected by the driver into the application memory space. 
 When we write to a device, the kernel takes the application data stream and places it into the driver's buffer.
 
-Each driver is identified by two numbers: the **major** is used to identify the driver associated with the device, while the **minor** is used to identify multiple devices of the same type managed by a single driver.
+Each driver is identified by the **major** number. The **minor** is used to identify multiple devices of the same type managed by a single driver.
 
 - Initially, in Linux, devices (nodes) were created manually, but managing them was tricky. 
 - `devfs` was created, a **Virtual File System** (VFS) managed by the kernel. It exposes information about devices and drivers, as well as the relationships and hierarchy among different components, to user space. It was an attempt to manage device nodes dynamically, however it lacked persistence between reboots and difficulties in changing permissions or ownership.
@@ -603,7 +626,7 @@ Once bios are created, they are converted into actual request (optimizing by mer
 `request_queue` structure represents the queue of pending I/O requests for a block device. It helps in scheduling and optimizing these requests before they are dispatched to the actual device driver: techniques such as merging adjacent requests are employed to enhance performance.
 `queue_rq` function convert a sequence of abstract block I/O into actual actions. 
 
-The rate at which request are transferred into the actual HW queue is regulated by a mechanism called **plugging**: under low conditions is allow delaying operations thus giving additional time to merges. 
+The rate at which request are transferred into the actual HW queue is regulated by a mechanism called **plugging**: under low conditions it allow delaying operations thus giving additional time to merges. 
 
 We can have multiple HW queue, enabling concurrent and out-of-order completition. 
 
@@ -641,20 +664,21 @@ A device is initialized using the driver `probe()` method.
 
 Linux kernel provides **driver frameworks** to promote best practices, provide consistency, minimizing code repetition and handling complex HW interactions. 
 ### Bus framework
-They simplify interaction with complex bus systems. 
-It is designed for non-discoverable devices often found in system-on-chip (SoC) or embedded systems. 
+It is a **uniform kernel infrastructure** for managing buses, devices, and drivers.
+It is responsible for registering them, organizing them hierarchically, and performing **device-driver binding** through a matching mechanism.
+#### Platform bus framework
+It is designed for **non-discoverable devices** often found in system-on-chip (SoC) or embedded systems. 
 Unlike other buses, platform devices are known to the kernel at boot time. 
 #### PCI bus framework
 **Peripheral Component Interconnect** express (PCIe) is a high-speed serial computer expansion bus standard designed around point-to-point topology. 
 It introduces a logical view: 
-- Root complex: acts as a bridge between CPU and memory subsystem to PCIe devices. 
-- Endpoints: terminal devices of a PCIe connection (e.g., GPU, SSDs) which initiate or respond to a PCIe transaction. 
-- Bridges: connects different bus types or PCIe hierarchies. 
+- **Root complex**: acts as a bridge between CPU and memory subsystem to PCIe devices. 
+- **Endpoints**: terminal devices of a PCIe connection (e.g., GPU, SSDs) which initiate or respond to a PCIe transaction. 
+- **Bridges**: connects different bus types or PCIe hierarchies. 
 
-Linux identifies and prepare peripherals through **device enumeration**. 
-A specific case is **PCI enumeration**: during system boot, the firmware interacts with each PCI peripherals to allocate safe space for memory mapper I/O and port I/O regions. 
+Linux identifies and prepare peripherals through **device enumeration**. In this specific case it uses **PCI enumeration**: during system boot, the firmware interacts with each PCI peripherals to allocate safe space for memory mapper I/O and port I/O regions. 
 `dsmeg` log provides a record of the PCI peripherals that Linux recognizes during booting. 
-Each PCI device has a configuration space containing the device id, vendor id and six **Base Address Registers** (**BARS**, distinguish between memory-mapped and I/O-mapper resources). 
+Each PCI device has a configuration space containing the device id, vendor id and six **Base Address Registers** (**BARS**, HW registers used to identify memory-mapped or port-based regions). 
 ## Sysfs and kobjects
 **kobjects** are the underlying foundation of the device model.
 

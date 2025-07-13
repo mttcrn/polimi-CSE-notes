@@ -114,20 +114,20 @@ RExp provide a powerful language for writing rules to extract content from text 
 ## Some Machine Learning Concepts
 ML consists in a set of techniques aimed to make machines "act more intelligent" by generalizing from past data to predict the future data. 
 
-"A computer program is said to learn from experience E with respect to some class of tasks T and a performance measure P, if its performance at task in T, as measured by P, improves because of experience E." Tom M. Mitchell
+
+> [!QUOTE] ML definition
+> "A computer program is said to learn from experience E with respect to some class of tasks T and a performance measure P, if its performance at task in T, as measured by P, improves because of experience E." 
+> Tom M. Mitchell
+
 
 In supervised learning each training instance is a vector in some feature space and it has been labeled with a class. The tasks consists in partitioning the space to be able to make predictions for new vectors. 
 Data usually overlaps, so classes may not be linearly separable. Instances are described by many features, with some dimensions better at distinguishing classes than others. 
-
-![[data_no_linearly_separable.png]]
 
 All classifiers divide up the feature space: boundary can be linear or non-linear.
 - **Linear** models: include Naïve Bayes, Logistic Regression and Support Vector Machine (SVM).
 - **Non-linear** models: include SVM with Radial Basis Function (RBF) kernel, Gradient Boosted Decision Trees and Neural Networks.
 
-![[boundary_decisions.png]]
-
-The learning algorithm:
+The **learning algorithm**:
 - Takes as input training instances and corresponding ground truth labels.
 - Searches for parameters which minimizes prediction error (loss) on training labels.
 - Each algorithm has its own settings: the hyper-parameters which control the complexity of the model. 
@@ -164,9 +164,9 @@ Types of text classification problems:
 - **Multi-class classification**: output is a category (e.g. categorizing topics, routing communication to the correct department).
 - **Multi-label classification**: output is a set of categories (e.g. categorizing news articles).
 ## Extracting Features from Text
-Text can be arbitrarily long, it has NO fixed size which means that it cannot be given directly to the model. Features must be extracted. 
+Text can be arbitrarily long, it has NO fixed size which means that it cannot be given directly to the model. **Features** must be extracted. 
 
-![[Pasted image 20250224105533.png]]
+![[feature_extraction_text.png]]
 
 Features are signals in documents that are useful for predicting a category. We need to convert text data into a vector of features to give it to a classifier. 
 If training data is scarce (few documents available), one might use:
@@ -175,7 +175,7 @@ If training data is scarce (few documents available), one might use:
 - **Reading-difficulty based features** (e.g. average length of words/sentences).
 Most common features to extract are just the words themselves as the vocabulary of the document provides the most important signal, the # of occurrences of words provides further information. 
 ### Bag-of-words (BOW) model
-It represent docs as vectors of word counts. It is a massively sparse representation (long vector with many zeros).
+It represent docs as vectors of word counts. It is a massively **sparse** representation (long vector with many zeros).
 
 One could also use **one-hot encoding** to create a fixed dimension feature vector: just truncate documents at fixed length and treat them as a sequence of categorical variables. Then, encode categorical variables using one-hot encoding to produce $n$ binary features per variable where $n$ is the vocabulary size. 
 The problem is that we will have too many features given small amount of training data available (dense representation). 
@@ -192,8 +192,7 @@ The point is that vocabulary of documents/collection grows slowly compared to it
 ![[vocabulary_tokens.png]]
 
 Since document vocabulary is very small compared to vocabulary of collection, it is possibile to say that terms present in document usually characterize well its content.
-BOW representation includes also count of occurrences of each term. 
-Moreover, it completely ignores word order. An extension to include n-grams can increase performance, but greatly increases number of dimension, so more data is then needed. BOW is a very sparse representation.
+BOW representation includes also count of occurrences of each term. Moreover, it completely ignores word order. An extension to include n-grams can increase performance, but greatly increases number of dimension, so more data is then needed. BOW is a very sparse representation.
 ![](./assets/BOW_example.png)
 In general, we have FAR FEWER documents than vocabulary terms, which means fewer examples than features. So strong regularization is needed to guide the learner and prevent overfitting. 
 ## Linear Classification Models
@@ -210,7 +209,7 @@ We will discuss 3 most popular linear models:
 - **Naive Bayes**: traditionally used with text.
 - **Logistic Regression**: works well if regularized.
 - **Support Vector Machines**: naturally regularized and designed for high dimensional data. 
-### Multinomial Naïve Bayes 
+### Multinomial [[Machine Learning#Naive Bayes|Naïve Bayes ]]
 Naïve Bayes (NB) is one of the oldest and simplest text classifier. 
 Called naïve because it makes simplifying assumption: that **word occurrences** are **statistically independent** of each other given the class label i.e. that words provide independent information about the class.
 This assumption makes calculating parameters of model very simple. However, it does not hold in practice, since words are highly correlated with each other, but nonetheless the predictions from the model are good. The assumption just causes model to be overconfident.
@@ -238,11 +237,11 @@ Advantages:
 - Explainable since each feature's contribution to final score is additive. 
 Disadvantages:
 - Assumes feature values are **linearly related** to log odds. If assumption is strongly violated, model will perform poorly. 
-### Support Vector Machines (SVMs)
+### [[Machine Learning#Support Vector Machines (SVM)|Support Vector Machines (SVM)]]
 SVM finds **maximum margin hyperplane separating classes**. The margin $\gamma$ is the distance from the hyperplane to the closest points either side. 
 Points laying exactly on margin are referred as **support vectors**: they prevent the margin from getting bigger, thus constrain/define location of boundary. In d-dimensional space, we have at least d+1 support vectors.
 
-![300](./assets/SVM.png)
+![500](./assets/SVM.png)
 
 In contrast with logistic regression, the position of the hyperplane depends only on the closest points. Moreover, adding or moving internal points won't effect such boundary. 
 
@@ -258,7 +257,7 @@ More generally, we have:
 - $w \cdot x \le -\gamma$  for all negative points.
 - equivalently, $y_j w \cdot x \ge \gamma$ for all examples $x_j$ where class $y_i \in \{+1, -1\}$.
 
-So we just need to find parameters $w$ that maximizes the margin $\gamma$, subject to the constraint $\forall j \ y_j w \cdot x_j \ge \gamma$.
+So we just need to **find parameters $w$ that maximizes the margin** $\gamma$, subject to the constraint $\forall j \ y_j w \cdot x_j \ge \gamma$.
 But increasing length of vector $w$ increases value of $\gamma$, so either:
 - fix length of vector $w$ and maximize $\gamma$.
 - or set $\gamma=1$ and minimize $\sum_i w_i^2$ subject to constraint $\forall j \ y_j w \cdot x_j \ge 1$.
@@ -277,20 +276,21 @@ It applies no cost to most correctly classified points. It increases linearly wi
 $$
 L(x_i, y_i) = max[0, 1 - y_i(\sum_{j=1}^d w_jx_{ij} - b)]
 $$
-![[hinge_loss.png|500]]
+![[hinge_loss.png|400]]
 
 ## Evaluating a Binary Text Classifier
 If using a BOW representation of text, linear classifier are sufficient for most problems. Data is high dimensional, so dependencies between features do not usually need to be modeled. 
 
-First thing to evaluate is the confusion matrix:
+First thing to evaluate is the **confusion matrix**:
 - Accuracy: % of correct predictions.
 - Precision: % of positive predictions that were correct.
 - Recall: % of positive instances that were found by model.
 - F-measure: harmonic mean of precision and recall. 
 - AuC: area under the ROC Curve is often used as a single measure that doesn't depend on the confidence threshold used to make prediction with the model. 
 
-if the are n classes, confusion matrix will be $n \times n$. 
-Precision and recall will be calculated for each class by considering it positive class in a one-versus-all setting. Then, each class's precision and recall values will be combined into a single measure:
+If the are n classes, confusion matrix will be $n \times n$. 
+
+Precision and recall can be calculated for each class by considering it positive class in a one-versus-all setting. Then, each class's precision and recall values will be combined into a single measure:
 - Macro-average: average over classes weighting each class the same. 
 - Micro-average: average over classes weighting each class by the number of datapoints in it.
 
@@ -327,7 +327,7 @@ Then we rank documents by how unlikely they are ($1 \over P$) resulting in an in
 $$
 score(d) = -\log \prod_{t \in q \cap d} P(t \in d') = \sum_{t \in q \cap d} \log {N \over \text{d}f_t}
 $$
-IDF weights each term by the logarithm of inverse probability of finding term in a document: $idf_t = \log {N \over \text{d}f_t}$.
+IDF **weights** each term by the **logarithm of inverse probability of finding term in a document**: $idf_t = \log {N \over \text{d}f_t}$.
 It is a standard information theory measure gained from observing term $info(t) = - \log P(t)$.
 
 A common variants of IDF uses odds of observing term: $odds(t) = P(t) / [1 - P(t)]$.
@@ -342,7 +342,7 @@ IDF weights vocabulary terms but:
 - some documents contain the same query term many times and are more likely to be relevant.
 The simplest option to include term count information is to directly weight score by it: $$
 score(q, d) = \sum_{t \in q} tf_{t, d} \log {N \over \text{d}f_t}
-$$where $t f_{t, d}$ if the number of occurrences of term $t$ in document $d$ (a.k.a. term frequency).
+$$where $t f_{t, d}$ if the number of occurrences of term $t$ in document $d$ (a.k.a. **term frequency**).
 
 Instead of calculating probability that a random doc contains the term, we calculate the probability that it contains the term exactly $k$ times:
 $$
@@ -361,7 +361,7 @@ score(q, d) = - \sum_{t \in q} tf_{t, d} \log ({ctf_t \over \sum_{t'} ctf_{t'}})
 $$
 Similar to the previous formula.
 
-The TF-IDF score performs well in practice but assumes a linear relationship between term frequency and document score. This linear assumption have been questioned over time as it is not always valid. 
+The TF-IDF score performs well in practice but **assumes** a **linear relationship** between **term frequency** and **document score**. This linear assumption have been questioned over time as it is not always valid. 
 
 A common alternative is increase score with logarithm of term count: $\log(1 + tf_{t, d})$ or $\max (0, 1 + \log(tf_{t, d}))$.
 ## Length Normalization
@@ -370,7 +370,7 @@ We need to normalize the length of the document as longer documents have a large
 To normalize we could just divide by the length of the document, but most common normalization uses $L_2$ rather than $L_1$ norm (a.k.a. document length in tokens).
 ### Cosine similarity between TF-IDF vectors
 Vector space model treats TF-IDF values for all terms in documents as a vector representation $d = (tf{1, d} \cdot idf_1, ..., tf_{1, d} \cdot idf_n)$.
-The similarity between query & document can be computed based on the angle between vectors. 
+The **similarity** between **query & document** can be computed based on the **angle between vectors**. 
 Cosine of the angle is used since it gives similarity values in range $[0, 1]$, which is normalized by the euclidean length (a.k.a. $L_2$ norm):
 $$
 sim(d_1, d_2) = {d_1 \cdot d_2 \over ||d_1||||d_2||}
@@ -380,8 +380,7 @@ where $d_1$ is the query and $d_2$ is the document.
 
 ### Pivoted Length Normalization
 There have been many studies over the years into other types of normalization such as Pivoted Length Normalisation (PLN). 
-The idea is that generally longer documents do contain more information than shorter ones,
-but normalizing loses all length information.
+The idea is that generally **longer documents do contain more information than shorter ones**, but normalizing loses all length information.
 So instead, we parameterize $L_1$ normalization around average document length:
 $$
 {tf_{t, d} \over L_d} \rightarrow {tf_{t, d} \over bL_d + (1-b)L_{ave}}
@@ -399,16 +398,22 @@ This was the go to method for term-based text retrieval. It has the property tha
 ## Index Structures
 Retrieval measures must be calculated **fast**, since delay affects attention: search engines need to respond in tenths of a second and have been engineered to be as fast as possibile. 
 
-**Inverted indices** are the building blocks of search engines. They are made up of posting lists mapping: TermIDs -> DocumentIDs. They use integer compression algorithms that allow for fast decompression to reduce space requirement. 
+**Inverted indices** are the building blocks of search engines. They are made up of **posting lists mapping**: TermIDs -> DocumentIDs. They use integer compression algorithms that allow for fast decompression to reduce space requirement. 
+
+
+> [!DEFINITION] Posting List
+> A **posting list** (or **inverted list**) is a list of occurrences (or "posting") of a particular term in a collection of documents. 
+> Each posting typically includes DocumentID and optional data like term frequency, positions, offsets. 
+
 
 Calculating retrieval function involves computing joins over posting list where documents are sorted by term count to allow for early termination of results. 
 **Index pruning** techniques are used to get rid of documents that would never be retrieved for a certain query.
 ### Positional Indices
 Documents are more likely to be relevant if query terms appear close together. Most indices record locations of terms in document and allows for **proximity** between keywords to be calculated. 
-Words at start of webpage more important in general.
-Statistically significant bigram/trigrams are found using pointwise mutual information and are often indexed with their own posting list.
+Words at start of webpage are more important in general.
+Statistically significant bigram/trigrams are found using pointwise mutual information and they are often indexed with their own posting list.
 ### Crawlers
-Crawlers scour web following hyperlinks to add to index. 
+Crawlers search web following hyperlinks to add to index. 
 Efficient crawling requires learning to prioritize URLs effectively and determining how frequently to re-visit a website and update the index.
 
 ![](./assets/crawler_arch.png)
@@ -432,11 +437,12 @@ Search engines like Google combine hundreds of signals together.
 Rank learning provides an automated & coherent method for combining diverse signals into a single retrieval score while optimizing a measure users care about (e.g. NDCG, ERR).
 
 1. Start with a query.
-2. Generate initial ranking using keyword-based ranker.
-3. Truncate ranking as candidates for re-ranking.
-4. Calculate feature values for each candidate.
-5. Normalize each feature at the query level: usually perform min-max normalization at query level for each feature, necessary to make values comparable across queries. 
-6. Training: provide ground-truth relevance labels for each query-document pair, generally trough manual labeling.
+2. Generate initial ranking using **keyword-based ranker**.
+3. **Truncate** ranking as candidates for re-ranking.
+4. Calculate **feature values** for each candidate.
+5. **Normalize** each feature at the query level: usually perform min-max normalization at query level for each feature, necessary to make values comparable across queries. 
+6. **Training**: provide ground-truth relevance labels for each query-document pair, generally trough manual labeling.
+
 The procedure is repeated for all queries. 
 ## Evaluating Search Results
 Search engines employ people to annotate search results with relevance information. 
@@ -445,16 +451,16 @@ Usually they do not train models directly from click data, since it causes a fee
 Latest approach is to use a LLM to judge relevance. 
 
 Traditional measures for evaluating search results are:
-- Precision at depth $k$: $P @ k = \# \{ \text{relevant docs in top k}\}/k$.
+- **Precision** at depth $k$: $P @ k = \# \{ \text{relevant docs in top k}\}/k$.
   It is the percentage of relevant top results.
-- Recall at depth $k$: $R @ k = \#\{\text{relevant docs in top k}\}/\#\{\text{relevant docs in total}\}$.
+- **Recall** at depth $k$: $R @ k = \#\{\text{relevant docs in top k}\}/\#\{\text{relevant docs in total}\}$.
   It is the percentage of found documents in all the relevant documents available. 
-- F-measure at depth $k$: $F_1 @ k = 2 / ({1 \over P@k} + {1 \over R@k})$.
+- **F-measure** at depth $k$: $F_1 @ k = 2 / ({1 \over P@k} + {1 \over R@k})$.
   It is the measure of how well is the result, combining precision and recall.
 
 More recent measures:
-- Mean Average Position (MAP): "average position" is average of $P@k$ values at all rank positions containing relevant documents, it estimates area under precision-recall curve. $$ AveP = {\sum_{k=1}^n (P(k) \times rel(k)) \over \text{\# of relevant docs}}$$
-- Normalized Discounted Cumulative Gain ($NDCG @ k$): it is more faithful to user experience by discounting lower ranked docs, it is normalized at the query level. $$ NDCG(Q, k) = {1 \over |Q|} \sum_{j=1}^{|Q|} Z_{kj} \sum_{m=1}^k {2^{R(j,m)}-1 \over \log_2 (1+m)}$$
+- **Mean Average Position** (MAP): "average position" is average of $P@k$ values at all rank positions containing relevant documents, it estimates area under precision-recall curve. $$ AveP = {\sum_{k=1}^n (P(k) \times rel(k)) \over \text{\# of relevant docs}}$$
+- **Normalized Discounted Cumulative Gain** ($NDCG @ k$): it is more faithful to user experience by discounting lower ranked docs, it is normalized at the query level. $$ NDCG(Q, k) = {1 \over |Q|} \sum_{j=1}^{|Q|} Z_{kj} \sum_{m=1}^k {2^{R(j,m)}-1 \over \log_2 (1+m)}$$
 Note that $P@k$ and $NDCG@k$ are usually the most important measures for retrieval.
 ## Formulating Learning-to-Rank Problem
 A two stage (re)ranking process:
@@ -463,9 +469,9 @@ A two stage (re)ranking process:
 We can treat rank learning as a simple regression problem, in which we predict the relevance label based on feature values. 
 Optimizing "pointwise" objective is suboptimal since it does not preference ordering at top of list, and ends up predicting well scores for less relevant documents. 
 
-During learning, we can use different loss functions:
-- Pointwise (e.g. MSE): $$total\_loss = \sum_{i=1}^m \sum_{j=1}^{n_{q_i}} loss(\underbrace{f(\overbrace{x_i^j}^{\text{feature vector}})}_{\text{predicted score}}, \overbrace{y_i^j}^{\text{relevance label}})$$- Pairwise (e.g. # of incorrectly ordered pairs): $$total\_loss = \sum_{i=1}^m \sum_{j=1}^{n_{q_i}} \sum_{k=j+1}^{n_{q_i}} loss(\underbrace{f(x_i^j), f(x_i^k)}_{\text{predicted scores}}, \overbrace{y_i^j, y_i^k}^{\text{relevance lables}})$$
-- Listwise (e.g. NDCG): $$total\_loss = \sum_{i=1}^m loss(\underbrace{f(x_i^1), .., f(x_i^{n_{q_i}})}_{\text{predicted scores}}, \overbrace{y_i^1, .., y_i^{n_{q_i}}}^{\text{relevance labels}})$$
+During learning, we can use different **loss functions**:
+- **Pointwise** (e.g. MSE): $$total\_loss = \sum_{i=1}^m \sum_{j=1}^{n_{q_i}} loss(\underbrace{f(\overbrace{x_i^j}^{\text{feature vector}})}_{\text{predicted score}}, \overbrace{y_i^j}^{\text{relevance label}})$$- **Pairwise** (e.g. # of incorrectly ordered pairs): $$total\_loss = \sum_{i=1}^m \sum_{j=1}^{n_{q_i}} \sum_{k=j+1}^{n_{q_i}} loss(\underbrace{f(x_i^j), f(x_i^k)}_{\text{predicted scores}}, \overbrace{y_i^j, y_i^k}^{\text{relevance lables}})$$
+- **Listwise** (e.g. NDCG): $$total\_loss = \sum_{i=1}^m loss(\underbrace{f(x_i^1), .., f(x_i^{n_{q_i}})}_{\text{predicted scores}}, \overbrace{y_i^1, .., y_i^{n_{q_i}}}^{\text{relevance labels}})$$
 LambdaMART is a listwise rank learner that makes use of the boosted regression trees. The name comes from Lambda, which is an approximation of loss gradient, and MART, which stands for Multiple Additive Regression Trees.
 It performs very well in practice, thus becoming the default/baseline learner in most applications.
 # Clustering Text
@@ -489,8 +495,8 @@ The most used with text are k-Means and Topic Models.
 It is the "goto" clustering method: simple, fast and relatively robust. 
 It searches for exactly $k$ clusters and represents each cluster by its centroid. 
 
-Advantages: scales well to large collections, require no pairwise distance calculations.
-Disadvantages: searches for global clusters, implicitly assumes Euclidean distance metric which is not idea for text, number of clusters must be specified in advance. 
+- Advantages: scales well to large collections, require no pairwise distance calculations.
+- Disadvantages: searches for global clusters, implicitly assumes Euclidean distance metric which is not ideal for text, number of clusters must be specified in advance (needs prior knowledge). 
 
 ![](./assets/k-means.png)Algorithm:
 1. Initialize $k$ centroid randomly.
@@ -500,29 +506,31 @@ Disadvantages: searches for global clusters, implicitly assumes Euclidean distan
 The algorithm minimizes the variance of clusters (squared distances between points & cluster centers): $\min \sum_{i=1}^k \sum_{\vec{x} \in C_i} d(\vec{x}, \vec{\mu}_{C_i})^2$. 
 
 Potential problems arises from the fact that choosing the "right" value of $k$ is critical as the algorithm can converge on local minimum (generally we run the algorithm multiple times) and too small $k$ led to cluster merging while too big $k$ led to cluster splitting.
-As for all clustering algorithms, scaling affects similarity measures and thus cluster found, but for text we have both TF-IDF weighting and document [[#Length Normalization|length normalization]]. 
+As for all clustering algorithms, scaling affects similarity measures and thus the clusters found, but for text we have both TF-IDF weighting and document [[#Length Normalization|length normalization]]. 
 ### k-Medoids
 It represents each cluster by its medoid rather than its centroid. Medoid is the point that is closest (small average distance) to all other points. 
 At each iteration, the algorithm must reassign datapoints to the cluster with closest medoid, and then recompute the medoids.
 
-Advantages: it can be used with other metrics rather than Euclidean, medoid is a real document so it provides a realistic representation of clusters.
-Disadvantages: it has much higher computational complexity w.r.t. k-Means as it needs to calculate distances for pairs of datapoints which is an $O(n^2)$ operation.
+- Advantages: it can be used with other metrics rather than Euclidean, medoid is a real document so it provides a realistic representation of clusters (while centroid it is not).
+- Disadvantages: it has much **higher computational complexity** w.r.t. k-Means as it needs to calculate distances for pairs of datapoints which is an $O(n^2)$ operation.
 ### Agglomerative Hierarchical Clustering
-It builds hierarchy of clusters called a **dendogram**. It is "agglomerative" since it builds cluster by merging groups in bottom-up fashion:
+Hierarchical clustering is a family of clustering algorithms that builds a hierarchy (typically visualized as a **dendrogram**) of clusters. It can be agglomerative or divisive. 
+
+It is "agglomerative" since it builds cluster by merging groups in bottom-up fashion:
 1. Assign each document to its own group.
 2. Merge the two most similar groups.
 3. Repeat until only one groups remains. 
 
-Hierarchical clustering needs to compute distances between groups of documents, so it uses a **linkage criteria**:
+**Hierarchical** clustering needs to compute distances between groups of documents, so it uses a **linkage criteria**:
 - complete-linkage: maximum distance between points in two groups.
 - single-linkage: minimum distance across groups.
 - average-linkage: average distance across groups.
 The linking criteria influences cluster's shape: complete or average linkage will restrict to tight, globular clusters while single linkage will allow for finding long, thin clusters.
 
-Advantages: it works with any distance metric/similarity function, the dendogram provides information about underlying structure of data.
-Disadvantage: its high time complexity makes it unsuitable for large datasets.
+- Advantages: it works with any distance metric/similarity function, the dendogram provides information about underlying structure of data.
+- Disadvantage: its high time complexity makes it unsuitable for large datasets.
 ### DSBScan
-It stands for Density-Based Spatial Clustering of Application with Noise: it is a density-based algorithm since clusters are found in high-density regions.
+It stands for **Density-Based Spatial Clustering** of application with noise: it is a density-based algorithm since clusters are found in high-density regions.
 The number of clusters are not defined by user but inferred from data. 
 
 The algorithms takes two parameters: the radius of neighborhood around each point $\epsilon$ and $minPoint$ which is the minimum number of points required to form a cluster. 
@@ -532,8 +540,8 @@ The algorithm classifies each point as either:
 - border point, which is not core but lies within $\epsilon$ of core points. In purple.
 - noise point, neither core nor border. In red. 
 ![350](./assets/DSBScan.png)
-Advantages: it does not need to choose the number of clusters in advance, it identifies and ignores noise/outliers instances, it finds arbitrarily (oddly) shaped clusters.
-Disadvantages: the performance depends critically on the chosen parameters (usually set $\epsilon$ as a function of average distance to $minPoints$ nearest neighbor), it may not work will if clusters have different densities. 
+- Advantages: it does not need to choose the number of clusters in advance, it identifies and ignores noise/outliers instances, it finds arbitrarily (oddly) shaped clusters.
+- Disadvantages: the performance depends critically on the chosen parameters (usually set $\epsilon$ as a function of average distance to $minPoints$ nearest neighbor), it may not work will if clusters have different densities. 
 ## Topic Modelling
 It allows documents to belong to multiple clusters: it is a **soft clustering** method. 
 It provides a low-dimensional representation of documents, compared to the high-dimensional vocabulary space. 
@@ -547,11 +555,11 @@ In this way, we need to estimate a much smaller set of parameters: $V \times T +
 
 ![](./assets/matrix_decomposition.png)
 
-The most famous technique is Latent Dirichlet Allocation (LDA) (so named since it uses a Dirichlet prior when estimating the parameters).
-Also Latent Semantic Indexing (LSI) is used, which applies Singular Value Decomposition (SVD) to the TD-IDF matrix. 
+The most famous technique is **Latent Dirichlet Allocation** (LDA) (so named since it uses a Dirichlet prior when estimating the parameters).
+Also **Latent Semantic Indexing** (LSI) is used, which applies **Singular Value Decomposition** (SVD) to the TD-IDF matrix. 
 
-Topic modelling is used to generalizes the observed term count to make the document representations more dense & useful, and allows calculating more meaningful distances between documents. 
-Sometime it is used to visualize collections, since it represents topics by most frequent terms. It is also common to show changes of collection over time. 
+Topic modelling is used to generalize the observed term count to make the document representations more dense & useful, and allows calculating more meaningful distances between documents. 
+Sometimes it is used to visualize collections, since it represents topics by most frequent terms. It is also common to show changes of collection over time. 
 
 The generative model for LDA works as follow:
 1. choose word proportions for each topic.
@@ -559,11 +567,10 @@ The generative model for LDA works as follow:
 3. for each position in the document: choose topic based on document proportions and choose word based on topic proportion.
 The algorithm require to iteratively update the parameters (topic probabilities for each document and word probabilities for each topic). It is possible to place Bayesian priors on parameters to avoid overfitting or use (Gibbs) sampling technique to avoid local maxima. The hyperparameters $\alpha, \beta$ determine the prior on the topic/document distribution (how concentrated they are).
 # Language Models and Word Embeddings
-A statistical language model is a probability distribution over sequences of words. In other words, language models are general-purpose text generator.
-
+A statistical language model is a probability distribution over sequences of words. In other words, language models are general-purpose text generator. 
 Language models discover statistical regularities in text and use them to predict the next word: if we can predict with some accuracy the next word, iterating forward allows us to predict entire sentences. 
 ## Markov Models
-Markov models predict the next word based on a fixed number of previous word. It is the simplest model that count n-grams (sequence of n words) in large corpus. In general, longer n-grams give better predictions. 
+Markov models predict the next word based on a fixed number of previous word. It is the simplest model that count n-grams (sequence of n words) in large corpus. In general, **longer n-grams give better predictions**. 
 
 **Smoothing** add a small constant to all counts before estimating probabilities: 
 $$
@@ -590,20 +597,21 @@ Greedy techniques always produce the same text, while sampling techniques produc
 
 To evaluate a language model (LM) we can apply:
 - **Extrinsic** evaluation: use model in a downstream task (e.g. spelling corrector) and evaluate performance on that task.
-- **Intrinsic** evaluation: train parameters of model on training set and then test model performance on the held-out dataset, by using likelihood that model would produce the new data to evaluate how well it is doing. 
+- **Intrinsic** evaluation: train parameters of model on training set and then test model performance on the held-out dataset.
 #### Perplexity
-Perplexity of language models quantifies the level of surprise/confusion at seeing new text: it measures how unlikely the observed data is under the model. 
+Perplexity of language models quantifies the level of surprise/confusion at seeing new text: it measures **how unlikely the observed data is** under the model. 
 It can be calculated by:
 1. Compute the probability of observed sequence $P(w_1, .., w_n)$ under model.
 2. Normalize it for the length of text sequence $P(w_1, .., w_n)^{1/n}$ (i.e. compute the "average" per-word probability).
 3. Invert the probability to compute uncertainty $PP(w) = P(w_1, .., w_n)^{-1/n}$. 
-   Minimizing perplexity is the same as maximizing the probability, so lower perplexity stands for a better model. 
+
+Minimizing perplexity is the same as maximizing the probability, so lower perplexity stands for a better model. 
 
 | Perplexity                                                                     | Negative log Likelihood (nLL)                                                              | Cross-entropy (CE)                                                                                |
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
 | inverse of geometric mean of probability of correctly predicting the next word | negative logarithm of probability sequence, dividing by sequence length gives per-word nLL | expected (empirical average) log surprise under model, number of bits needed to quantify surprise |
 | $PP(w) = P(w_1, .., w_n)^{-1/n}$                                               | $H(W) = -{1 \over N} \log_2 P(w_1, .., w_n)$<br>$PP(W)=2^{H(W)}$                           | $H(p, q)=-\sum p(x_i) \log_2 q(x_i)$<br>$H(p, q) \approx -{1 \over N} \log_2 q(W)$                |
-### Problems with n-gram LM
+## Problems with n-gram LM
 As n gets larger, the change of finding the right sequence in corpus drops exponentially, meaning that there is never enough training data. 
 This may lead to continuously backing off to shorter n-grams, which greatly limits the power of the model.
 
@@ -613,11 +621,12 @@ We need methods that can both generalize from limited data and handle longer dep
 Word embeddings are **dense vectors** representing words in a high dimensional space. They are very low dimensional compared to one-hot encoding of terms. Just like one-hot encodings, word embeddings can be aggregated to represent sentences and documents. 
 
 ![450](./assets/WE_vs_one-hot.png)
-Embeddings are produced by supervised machine learning models, which are trained to predict missing words based on surrounding context which may include only previous words (causal model) or also future words (non-causal model).
+Embeddings are produced by supervised machine learning models, which are trained to **predict missing words** based on **surrounding context** which may include only **previous words** (causal model) or also **future words** (non-causal model).
 It is a multi-class problem (estimate the probability for every word in a vocabulary). 
 The issue is that even linear classifier requires very large number of parameters since it will be quadratic in the size of $V$. 
 ### [[Artificial Neural Networks & Deep Learning#Word2Vec|Word2Vec]]
-It solved the parameter space issue by using bag-of-words representation, a NN with a single (linear) hidden layer and by training the model in a discriminative fashion by inventing negative examples. 
+It solved the parameter space issue by using BOW representation, a NN with a single (linear) hidden layer and by training the model in a discriminative fashion by inventing negative examples. 
+
 ![](./assets/word2vec.png)
 
 There are two versions of Word2Vec:

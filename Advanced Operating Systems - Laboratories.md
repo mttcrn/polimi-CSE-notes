@@ -357,6 +357,9 @@ static int read_list_rcu(void *data){
 		struct list_element *entry;
 		
 		rcu_read_lock();
+		// note that this is NOT a lock
+		// readers are able to read the values without using a SPINLOCK
+		// it is useful to keep trace of readers
 		
 		pr_info("[ ");
 		list_for_each_entry(entry, &my_list, list){
@@ -389,6 +392,7 @@ static int manipulate_list_rcu(void *data){
 			list_del_rcu(&temp->list);
 			entry->data = temp->data + 1;
 			
+			// used to put the writer in a wait state for the grace period to be elapsed
 			synchronize_rcu();
 			kfree(temp);
 		}
@@ -688,7 +692,7 @@ module_init(my_module_init);
 module_exit(my_module_exit);
 ```
 # Lab5: UART character device driver
-The goal of the lab is to learn how to write a Linux character device driver.
+The goal of the lab is to learn how to write a Linux **character device driver**.
 ```c
 #include <linux/module.h>
 #include <linux/init.h>
@@ -749,7 +753,7 @@ static irqreturn_t serialaos_irq(int irq, void *arg) {
 				}
 				numchar++;
 			}
-			// wakeup thread if any
+			// wakeup waiting thread if any
 			wake_up(&waiting);
 			spin_unlock(&rxLock);
 			return IRQ_HANDLED;
@@ -932,6 +936,6 @@ rmmod <module name>
 what is missing into the pdf: 
 INIT_LIST_HEAD(&entry->list);
 RCU-aware list manipulation
-IRQ verion spinlock
+IRQ version spinlock
 IRQ flags at creation time
 workqueue instantiation? 

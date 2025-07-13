@@ -1382,7 +1382,7 @@ $$
 Maximizing this margin helps improve generalization by ensuring the classifier has a **robust separation between classes**, which leads to **better performance on unseen data**.
 It is a weight optimization problem. 
 
-![500](./assets/SVM_2.png)
+![500](SVM.png)
 ### Primal problem
 To maximize the margin, we have to find the optimal $w^*$ and $b^*$ by solving:
 $$
